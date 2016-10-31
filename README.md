@@ -1,0 +1,1 @@
+Collection of swing widgets for audio applications (sliders, dials, XYPads etc).

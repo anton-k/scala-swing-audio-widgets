@@ -17,6 +17,11 @@ package scala.swing.audio {
 
 package scala.swing.audio.ui {
 
+trait SetWidget[A] {
+    def set(value: A, fireCallback: Boolean): Unit
+}
+
+
 private object Utils {
     def aliasingOn(g: Graphics2D) {
         g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
@@ -83,7 +88,7 @@ case class Text(text: String, color: Color) extends Component {
 
 }
 
-case class PushButton(val color: Color, text: Option[String] = None)(onClick: => Unit) extends Component {    
+case class PushButton(val color: Color, text: Option[String] = None)(onClick: => Unit) extends Component with SetWidget[Unit] {    
     preferredSize = new Dimension(50, 50)
 
     listenTo(mouse.clicks)
@@ -126,6 +131,13 @@ case class PushButton(val color: Color, text: Option[String] = None)(onClick: =>
             Utils.drawCenteredString(g, label, new Rectangle(x, y, w, h))
         }
     }
+
+    def set(value: Unit, fireCallback: Boolean = true) {
+        if (fireCallback) {
+            onClick
+        }
+        blink
+    }
 }
 
 object ToggleButton {
@@ -134,7 +146,7 @@ object ToggleButton {
 
 case class ToggleButton(init: Boolean, color: Color, text: Option[String] = None)
     (implicit onClick: Boolean => Unit = ToggleButton.defaultOnClick) 
-    extends Component {
+    extends Component with SetWidget[Boolean] {
         
     onClick(init)
 
@@ -174,9 +186,17 @@ case class ToggleButton(init: Boolean, color: Color, text: Option[String] = None
         }            
     }
 
+    def set(value: Boolean, fireCallback: Boolean) {
+        current = value
+        repaint
+        if (fireCallback) {
+            onClick(current)
+        }
+    }
+
 }
 
-case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) extends Component {
+case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) extends Component with SetWidget[((Int, Int), Boolean)] {
     var current = init
 
     for (x <- 0 until nx) {
@@ -255,9 +275,21 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val colo
             }
         }
     }
+
+    def set(value: ((Int, Int), Boolean), fireCallback: Boolean) {
+        val isPressed = value._2
+        val cell = value._1
+
+        if (isPressed) {
+            current = current + cell
+        } else {
+            current = current - cell
+        }
+
+    }
 }
 
-case class HCheck(init: Int, len: Int, color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component {
+case class HCheck(init: Int, len: Int, color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] {
     var current = init
     onSet(current)
 
@@ -311,10 +343,18 @@ case class HCheck(init: Int, len: Int, color: Color, texts: List[String] = List(
             }
         }
     }  
+
+    def set(value: Int, fireCallback: Boolean) {
+        if (fireCallback) {
+            onSet(value)
+        }
+        current = value
+        repaint
+    }
 }
 
 
-case class VCheck(init: Int, len: Int, color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component {
+case class VCheck(init: Int, len: Int, color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] {
     var current = init
     onSet(current)
 
@@ -366,11 +406,19 @@ case class VCheck(init: Int, len: Int, color: Color, texts: List[String] = List(
                 Utils.drawCenteredString(g, texts(y), new Rectangle(px, py, dw, dh))                
             }
         }
-    }  
+    } 
+
+    def set(value: Int, fireCallback: Boolean) {
+        if (fireCallback) {
+            onSet(value)
+        }
+        current = value
+        repaint
+    }
 }
 
 
-case class Dial(init: Float, color: Color)(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component {
+case class Dial(init: Float, color: Color)(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component with SetWidget[Float] {
     var current = init
     onSet(current)
 
@@ -449,10 +497,18 @@ case class Dial(init: Float, color: Color)(implicit onSet: Float => Unit = x => 
         val tau = toTau(t)
         ((cx + rad * Math.cos(2 * Math.PI * tau)).toFloat, (cy - rad * Math.sin(2 * Math.PI * tau)).toFloat)
     }
+
+    def set(value: Float, fireCallback: Boolean) {
+        if (fireCallback) {
+            onSet(value)
+        }
+        current = value
+        repaint
+    }
 }
 
 
-case class IntDial(init: Int, range: (Int, Int), color: Color)(implicit onSet: Int => Unit = x => println(s"IntDial: ${x}")) extends Component {
+case class IntDial(init: Int, range: (Int, Int), color: Color)(implicit onSet: Int => Unit = x => println(s"IntDial: ${x}")) extends Component with SetWidget[Int] {
     val textColor = Color.BLACK
     var current = (init - range._1).toFloat / (range._2 - range._1)
 
@@ -544,10 +600,18 @@ case class IntDial(init: Int, range: (Int, Int), color: Color)(implicit onSet: I
         val tau = toTau(t)
         ((cx + rad * Math.cos(2 * Math.PI * tau)).toFloat, (cy - rad * Math.sin(2 * Math.PI * tau)).toFloat)
     }
+
+    def set(value: Int, fireCallback: Boolean) {
+        if (fireCallback) {
+            onSet(value)
+        }
+        current = (value - range._1).toFloat / (range._2 - range._1)
+        repaint
+    }
 }
 
 
-case class HFader(init: Float, color: Color)(implicit onSet: Float => Unit = x => println(s"HFader: ${x}")) extends Component {
+case class HFader(init: Float, color: Color)(implicit onSet: Float => Unit = x => println(s"HFader: ${x}")) extends Component with SetWidget[Float] {
     var current = init
     onSet(current)
 
@@ -596,10 +660,17 @@ case class HFader(init: Float, color: Color)(implicit onSet: Float => Unit = x =
         g.drawRoundRect(px, py, w, h, arc, arc)
     }
 
+    def set(value: Float, fireCallback: Boolean) {
+        if (fireCallback) {
+            onSet(value)
+        }
+        current = value
+        repaint
+    }
 }
 
 
-case class VFader(init: Float, color: Color)(implicit onSet: Float => Unit = x => println(s"VFader: ${x}")) extends Component {
+case class VFader(init: Float, color: Color)(implicit onSet: Float => Unit = x => println(s"VFader: ${x}")) extends Component with SetWidget[Float] {
     var current = init
     onSet(current)
 
@@ -647,9 +718,17 @@ case class VFader(init: Float, color: Color)(implicit onSet: Float => Unit = x =
         g.setStroke(new BasicStroke(2f))
         g.drawRoundRect(px, py, w, h, arc, arc)
     }
+
+    def set(value: Float, fireCallback: Boolean) {
+        if (fireCallback) {
+            onSet(value)
+        }
+        current = value
+        repaint
+    }
 }
 
-case class XYPad(initX: Float, initY: Float, color: Color)(onSet: (Float, Float) => Unit) extends Component {
+case class XYPad(initX: Float, initY: Float, color: Color)(onSet: (Float, Float) => Unit) extends Component with SetWidget[(Float, Float)] {
     var current = (initX, initY)
     onSet(current._1, current._2)
 
@@ -712,10 +791,18 @@ case class XYPad(initX: Float, initY: Float, color: Color)(onSet: (Float, Float)
         val y = Utils.linearToAbsWithOffset(1 - v._2, size.height, offset)
         new Point(x.toInt, y.toInt)
     }
+
+    def set(value: (Float, Float), fireCallback: Boolean) {
+        current = value
+        repaint
+        if (fireCallback) {
+            onSet(value._1, value._2)
+        }
+    }
 }
 
 
-case class HFaderRange(init: (Float, Float), color: Color)(onSet: (Float, Float) => Unit) extends Component {
+case class HFaderRange(init: (Float, Float), color: Color)(onSet: (Float, Float) => Unit) extends Component with SetWidget[(Float, Float)] {
     var current = init    
 
     def cbkCurrentValue {
@@ -801,10 +888,18 @@ case class HFaderRange(init: (Float, Float), color: Color)(onSet: (Float, Float)
         g.setColor(bkgColor)
         g.fillRoundRect(px + (w * cx - offset * 0.5f).toInt, py, offset, h, arc, arc)
     }
+
+    def set(value: (Float, Float), fireCallback: Boolean) {
+        current = value
+        repaint
+        if (fireCallback) {
+            onSet(value._1, value._2)
+        }
+    }    
 }
 
 
-case class VFaderRange(init: (Float, Float), color: Color)(onSet: (Float, Float) => Unit) extends Component {
+case class VFaderRange(init: (Float, Float), color: Color)(onSet: (Float, Float) => Unit) extends Component with SetWidget[(Float,Float)] {
     var current = init    
 
     def cbkCurrentValue {
@@ -890,9 +985,17 @@ case class VFaderRange(init: (Float, Float), color: Color)(onSet: (Float, Float)
         g.setColor(bkgColor)
         g.fillRoundRect(px, py + (h * cy - offset * 0.5f).toInt, w, offset, arc, arc)
     }
+
+    def set(value: (Float, Float), fireCallback: Boolean) {
+        current = value
+        repaint
+        if (fireCallback) {
+            onSet(value._1, value._2)
+        }
+    }
 }
 
-case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: Color)(onSet: ((Float, Float), (Float, Float)) => Unit) extends Component {
+case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: Color)(onSet: ((Float, Float), (Float, Float)) => Unit) extends Component with SetWidget[((Float, Float), (Float, Float))] {
     private case class PointRange(x: Float, y: Float, isMinX: Boolean, isMinY: Boolean) {
         def point = (x, y)
     }
@@ -998,11 +1101,19 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: Color
         PointRange(current._1._1, current._2._2, true, false),
         PointRange(current._1._2, current._2._2, false, false), 
         PointRange(current._1._2, current._2._1, false, true)) 
+
+    def set(value: ((Float, Float), (Float, Float)), fireCallback: Boolean) {
+        current = value
+        repaint
+        if (fireCallback) {
+            onSet(value._1, value._2)
+        }
+    }
 }
 
 
 object DropDown {
-    def apply(init: Int, items: List[String])(onSet: Int => Unit): FlowPanel = new FlowPanel {
+    def apply(init: Int, items: List[String])(onSet: Int => Unit): FlowPanel = new FlowPanel with SetWidget[Int] {
         val widget = new ComboBox(items)
         
         contents += widget
@@ -1013,13 +1124,21 @@ object DropDown {
 
         reactions += {
             case SelectionChanged(`widget`) => onSet(widget.selection.index)
-        }    
+        } 
+
+        def set(value: Int, fireCallback: Boolean) {
+            widget.selection.index = value
+            widget.repaint
+            if (fireCallback) {
+                onSet(value)
+            }
+        }
     }
 }
 
 object TextInput {
 
-    def apply(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit): Component = new FlowPanel {
+    def apply(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit): Component = new FlowPanel with SetWidget[String] {
         val clickColor = color
         val textColor  = Color.BLACK
 
@@ -1057,6 +1176,14 @@ object TextInput {
             case KeyPressed(_, Key.Enter, _, _) => {
                 onSet(textField.text)
                 blink
+            }
+        }
+
+        def set(value: String, fireCallback: Boolean) {
+            textField.text = value
+            textField.repaint
+            if (fireCallback) {
+                onSet(value)
             }
         }
     }

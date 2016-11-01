@@ -12,6 +12,9 @@ package scala.swing.audio {
 
         def hor(items: List[Component])(implicit code: Unit = {}) = genBox(Orientation.Horizontal)(items)(code)
         def ver(items: List[Component])(implicit code: Unit = {}) = genBox(Orientation.Vertical)(items)(code)
+
+        type DropDownList = FlowPanel with SetWidget[Int]
+        type TextInput    = FlowPanel with SetWidget[String]
     }
 }
 
@@ -1112,8 +1115,8 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: Color
 }
 
 
-object DropDown {
-    def apply(init: Int, items: List[String])(onSet: Int => Unit): FlowPanel = new FlowPanel with SetWidget[Int] {
+object DropDownList {
+    def apply(init: Int, items: List[String])(onSet: Int => Unit): DropDownList = new FlowPanel with SetWidget[Int] {
         val widget = new ComboBox(items)
         
         contents += widget
@@ -1138,7 +1141,7 @@ object DropDown {
 
 object TextInput {
 
-    def apply(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit): Component = new FlowPanel with SetWidget[String] {
+    def apply(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit): TextInput = new FlowPanel with SetWidget[String] {
         val clickColor = color
         val textColor  = Color.BLACK
 

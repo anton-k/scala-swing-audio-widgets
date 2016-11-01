@@ -12,9 +12,6 @@ package scala.swing.audio {
 
         def hor(items: List[Component])(implicit code: Unit = {}) = genBox(Orientation.Horizontal)(items)(code)
         def ver(items: List[Component])(implicit code: Unit = {}) = genBox(Orientation.Vertical)(items)(code)
-
-        type DropDownList = FlowPanel with SetWidget[Int]
-        type TextInput    = FlowPanel with SetWidget[String]
     }
 }
 
@@ -1115,81 +1112,76 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), color: Color
 }
 
 
-object DropDownList {
-    def apply(init: Int, items: List[String])(onSet: Int => Unit): DropDownList = new FlowPanel with SetWidget[Int] {
-        val widget = new ComboBox(items)
-        
-        contents += widget
-        listenTo(widget.selection)
+case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) extends FlowPanel with SetWidget[Int] {
+    val widget = new ComboBox(items)
+    
+    contents += widget
+    listenTo(widget.selection)
 
-        widget.selection.index = init
-        onSet(init)        
+    widget.selection.index = init
+    onSet(init)        
 
-        reactions += {
-            case SelectionChanged(`widget`) => onSet(widget.selection.index)
-        } 
+    reactions += {
+        case SelectionChanged(`widget`) => onSet(widget.selection.index)
+    } 
 
-        def set(value: Int, fireCallback: Boolean) {
-            widget.selection.index = value
-            widget.repaint
-            if (fireCallback) {
-                onSet(value)
-            }
+    def set(value: Int, fireCallback: Boolean) {
+        widget.selection.index = value
+        widget.repaint
+        if (fireCallback) {
+            onSet(value)
         }
-    }
+    }    
 }
 
-object TextInput {
+case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit) extends FlowPanel with SetWidget[String] {
+    val clickColor = color
+    val textColor  = Color.BLACK
 
-    def apply(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit): TextInput = new FlowPanel with SetWidget[String] {
-        val clickColor = color
-        val textColor  = Color.BLACK
+    private def updateColor(color: Color) {
+        textField.foreground = color
+        textField.repaint            
+    }
 
-        private def updateColor(color: Color) {
-            textField.foreground = color
-            textField.repaint            
-        }
+    private def setFont(fontType: Int) {
+        val oldFont = textField.font
+        val newFont = new Font(oldFont.getName(), fontType, oldFont.getSize())             
+        textField.font = newFont
+    }
 
-        private def setFont(fontType: Int) {
-            val oldFont = textField.font
-            val newFont = new Font(oldFont.getName(), fontType, oldFont.getSize())             
-            textField.font = newFont
-        }
-
-        private def blink {
-            setFont(Font.BOLD)
-            updateColor(clickColor)            
-            Timer(200, repeats = false) {
-                setFont(Font.PLAIN)
-                updateColor(textColor)               
-            }
-        }
-
-        preferredSize = new Dimension(100, 20)
-        init.foreach(onSet)
-
-        val textField:TextField = new TextField(init.getOrElse(""))
-        textField.columns = textLength
-
-        contents += textField
-
-        listenTo(textField.keys)
-
-        reactions += {
-            case KeyPressed(_, Key.Enter, _, _) => {
-                onSet(textField.text)
-                blink
-            }
-        }
-
-        def set(value: String, fireCallback: Boolean) {
-            textField.text = value
-            textField.repaint
-            if (fireCallback) {
-                onSet(value)
-            }
+    private def blink {
+        setFont(Font.BOLD)
+        updateColor(clickColor)            
+        Timer(200, repeats = false) {
+            setFont(Font.PLAIN)
+            updateColor(textColor)               
         }
     }
+
+    preferredSize = new Dimension(100, 20)
+    init.foreach(onSet)
+
+    val textField:TextField = new TextField(init.getOrElse(""))
+    textField.columns = textLength
+
+    contents += textField
+
+    listenTo(textField.keys)
+
+    reactions += {
+        case KeyPressed(_, Key.Enter, _, _) => {
+            onSet(textField.text)
+            blink
+        }
+    }
+
+    def set(value: String, fireCallback: Boolean) {
+        textField.text = value
+        textField.repaint
+        if (fireCallback) {
+            onSet(value)
+        }
+    }    
 }
 
 }

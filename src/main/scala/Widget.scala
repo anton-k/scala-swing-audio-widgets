@@ -35,6 +35,11 @@ private object Utils {
         else if (x > maxVal) maxVal
         else x
 
+    def withinBoundsInt(minVal: Int, maxVal: Int)(x: Int) = 
+        if (x < minVal) minVal
+        else if (x > maxVal) maxVal
+        else x        
+
 
     def linearValueWithoutOffset(value: Float, total: Float, offset: Float) = {
         val r = Utils.withinBounds(offset, total - offset)(value)
@@ -345,10 +350,11 @@ case class HCheck(init: Int, len: Int, color: Color, texts: List[String] = List(
     }  
 
     def set(value: Int, fireCallback: Boolean) {
+        val boundedValue = Utils.withinBoundsInt(0, len - 1)(value)
         if (fireCallback) {
-            onSet(value)
+            onSet(boundedValue)
         }
-        current = value
+        current = boundedValue
         repaint
     }
 }
@@ -409,10 +415,11 @@ case class VCheck(init: Int, len: Int, color: Color, texts: List[String] = List(
     } 
 
     def set(value: Int, fireCallback: Boolean) {
+        val boundedValue = Utils.withinBoundsInt(0, len - 1)(value)
         if (fireCallback) {
-            onSet(value)
+            onSet(boundedValue)
         }
-        current = value
+        current = boundedValue
         repaint
     }
 }
@@ -499,10 +506,11 @@ case class Dial(init: Float, color: Color)(implicit onSet: Float => Unit = x => 
     }
 
     def set(value: Float, fireCallback: Boolean) {
+        val boundedValue = Utils.withinBounds(0, 1)(value)
         if (fireCallback) {
-            onSet(value)
+            onSet(boundedValue)
         }
-        current = value
+        current = boundedValue
         repaint
     }
 }
@@ -602,10 +610,11 @@ case class IntDial(init: Int, range: (Int, Int), color: Color)(implicit onSet: I
     }
 
     def set(value: Int, fireCallback: Boolean) {
+        val boundedValue = Utils.withinBoundsInt(range._1, range._2)(value)
         if (fireCallback) {
-            onSet(value)
+            onSet(boundedValue)
         }
-        current = (value - range._1).toFloat / (range._2 - range._1)
+        current = (boundedValue - range._1).toFloat / (range._2 - range._1)
         repaint
     }
 }
@@ -661,10 +670,11 @@ case class HFader(init: Float, color: Color)(implicit onSet: Float => Unit = x =
     }
 
     def set(value: Float, fireCallback: Boolean) {
+        val boundedValue = Utils.withinBounds(0, 1)(value)
         if (fireCallback) {
-            onSet(value)
+            onSet(boundedValue)
         }
-        current = value
+        current = boundedValue
         repaint
     }
 }
@@ -720,10 +730,11 @@ case class VFader(init: Float, color: Color)(implicit onSet: Float => Unit = x =
     }
 
     def set(value: Float, fireCallback: Boolean) {
+        val boundedValue = Utils.withinBounds(0, 1)(value)
         if (fireCallback) {
-            onSet(value)
+            onSet(boundedValue)
         }
-        current = value
+        current = boundedValue
         repaint
     }
 }

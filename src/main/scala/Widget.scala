@@ -35,7 +35,8 @@ trait SetText {
 }
 
 trait SetTextList {
-    def setText(pos: Int, text: String): Unit
+    def setTextAt(pos: Int, text: String): Unit
+    def textListLength: Int
 }
 
 private object Utils {
@@ -81,7 +82,22 @@ private object Utils {
         g.setFont(font);
         // Draw the String
         g.drawString(text, x, y);        
-    }        
+    }
+
+
+    def setTextInArray(maxListLength: Int, textArray: Array[String], pos: Int, text: String) = {
+        if (pos < maxListLength) {
+            var resTextArray = 
+                if (pos >= textArray.length) {
+                    textArray ++ Array.fill(pos - textArray.length + 1)("")                
+                } else textArray
+            resTextArray(pos) = text
+            resTextArray
+        } else {
+            textArray
+        }
+        
+    }
 
 }
 
@@ -97,7 +113,7 @@ object Timer {
 }
 
 
-case class Text(text: String, var color: Color) extends Component {      
+case class Text(var text: String, var color: Color) extends Component with SetText {      
     preferredSize = new Dimension(5 * text.length + 2 * offset, 50)    
     private val offset = 5
 
@@ -107,9 +123,13 @@ case class Text(text: String, var color: Color) extends Component {
         Utils.drawCenteredString(g, text, new Rectangle(0, 0, size.width, size.height))
     }
 
+    def setText(t: String) {
+        text = t
+        repaint
+    }
 }
 
-case class PushButton(var color: Color, text: Option[String] = None)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor {    
+case class PushButton(var color: Color, var text: Option[String] = None)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor with SetText {    
     preferredSize = new Dimension(50, 50)
 
     listenTo(mouse.clicks)
@@ -167,15 +187,20 @@ case class PushButton(var color: Color, text: Option[String] = None)(onClick: =>
         color = c
         repaint
     }
+
+    def setText(t: String) {
+        text = Some(t)
+        repaint
+    }
 }
 
 object ToggleButton {
     private def defaultOnClick(b: Boolean) = println(s"ToggleButton: ${b}")    
 }
 
-case class ToggleButton(init: Boolean, var color: Color, text: Option[String] = None)
+case class ToggleButton(init: Boolean, var color: Color, var text: Option[String] = None)
     (implicit onClick: Boolean => Unit = ToggleButton.defaultOnClick) 
-    extends Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor {
+    extends Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor with SetText {
         
     onClick(init)
 
@@ -231,9 +256,13 @@ case class ToggleButton(init: Boolean, var color: Color, text: Option[String] = 
         repaint
     }
 
+    def setText(t: String) {
+        text = Some(t)
+        repaint
+    }
 }
 
-case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) extends Component with SetWidget[((Int, Int), Boolean)] {
+case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) extends Component with SetWidget[((Int, Int), Boolean)] with SetTextList {
     var current = init
 
     for (x <- 0 until nx) {
@@ -274,7 +303,7 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val colo
 
     private val offset = 5
 
-    private val textArray = texts.toArray
+    private var textArray = texts.toArray
 
     private def getText(x: Int, y: Int) = {
         val ix = x + nx * y
@@ -324,11 +353,19 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val colo
         }
 
     }
+
+    def textListLength = nx * ny
+
+    def setTextAt(pos: Int, text: String) {
+        textArray = Utils.setTextInArray(textListLength, textArray, pos, text)
+        repaint
+    }
 }
 
-case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] with GetWidget[Int] with SetColor {
+case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] with GetWidget[Int] with SetColor with SetTextList {
     var current = init
     onSet(current)
+    var textArray = texts.toArray
 
     preferredSize = new Dimension(40 * len, 30)
     private val bkgColor = Color.GRAY
@@ -347,7 +384,7 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
         }
     }
 
-    private val offset = 5
+    private val offset = 5    
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -376,7 +413,7 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
             g.setColor(Color.BLACK)
             if (x < textListLen) {
                 val rect = new Rectangle(px, py, dw, dh)
-                Utils.drawCenteredString(g, texts(x), new Rectangle(px, py, dw, dh))                
+                Utils.drawCenteredString(g, textArray(x), new Rectangle(px, py, dw, dh))                
             }
         }
     }  
@@ -397,12 +434,20 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
         color = c
         repaint
     }
+
+    def textListLength = len
+
+    def setTextAt(pos: Int, text: String) {
+        textArray = Utils.setTextInArray(len, textArray, pos, text)
+        repaint
+    }
 }
 
 
-case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] with GetWidget[Int] with SetColor {
+case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] with GetWidget[Int] with SetColor with SetTextList {
     var current = init
     onSet(current)
+    var textArray = texts.toArray
 
     preferredSize = new Dimension(50, 30 * len)
     private val bkgColor = Color.GRAY
@@ -449,7 +494,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
             g.setColor(Color.BLACK)
             if (y < textListLen) {
                 val rect = new Rectangle(px, py, dw, dh)
-                Utils.drawCenteredString(g, texts(y), new Rectangle(px, py, dw, dh))                
+                Utils.drawCenteredString(g, textArray(y), new Rectangle(px, py, dw, dh))                
             }
         }
     } 
@@ -468,6 +513,13 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 
     def setColor(c: Color) {
         color = c
+        repaint
+    }
+
+    def textListLength = len
+
+    def setTextAt(pos: Int, text: String) {
+        textArray = Utils.setTextInArray(len, textArray, pos, text)
         repaint
     }
 }

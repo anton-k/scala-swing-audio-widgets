@@ -165,6 +165,7 @@ case class PushButton(var color: Color, text: Option[String] = None)(onClick: =>
 
     def setColor(c: Color) {
         color = c
+        repaint
     }
 }
 
@@ -227,6 +228,7 @@ case class ToggleButton(init: Boolean, var color: Color, text: Option[String] = 
 
     def setColor(c: Color) {
         color = c
+        repaint
     }
 
 }
@@ -393,6 +395,7 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 
     def setColor(c: Color) {
         color = c
+        repaint
     }
 }
 
@@ -465,6 +468,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 
     def setColor(c: Color) {
         color = c
+        repaint
     }
 }
 
@@ -562,6 +566,7 @@ case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x
 
     def setColor(c: Color) {
         color = c
+        repaint
     }
 }
 

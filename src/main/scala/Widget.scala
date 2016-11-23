@@ -362,7 +362,12 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val colo
     }
 }
 
-case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) extends Component with SetWidget[Int] with GetWidget[Int] with SetColor with SetTextList {
+case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) 
+    extends Component 
+    with SetWidget[Int] 
+    with GetWidget[Int] 
+    with SetColor 
+    with SetTextList {
     var current = init
     onSet(current)
     var textArray = texts.toArray
@@ -419,7 +424,7 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
     }  
 
     def set(value: Int, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBoundsInt(0, len - 1)(value)
+        val boundedValue =  value % len
         if (fireCallback) {
             onSet(boundedValue)
         }
@@ -500,7 +505,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
     } 
 
     def set(value: Int, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBoundsInt(0, len - 1)(value)
+        val boundedValue =  value % len
         if (fireCallback) {
             onSet(boundedValue)
         }

@@ -57,6 +57,11 @@ private object Utils {
         else if (x > maxVal) maxVal
         else x        
 
+    def mod(a: Int, b: Int) = {
+        val res = a % b
+        if (res < 0) (res + b)
+        else res
+    }
 
     def linearValueWithoutOffset(value: Float, total: Float, offset: Float) = {
         val r = Utils.withinBounds(offset, total - offset)(value)
@@ -424,7 +429,7 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
     }  
 
     def set(value: Int, fireCallback: Boolean) {
-        val boundedValue =  value % len
+        val boundedValue = Utils.mod(value, len)
         if (fireCallback) {
             onSet(boundedValue)
         }
@@ -505,7 +510,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
     } 
 
     def set(value: Int, fireCallback: Boolean) {
-        val boundedValue =  value % len
+        val boundedValue = Utils.mod(value, len)
         if (fireCallback) {
             onSet(boundedValue)
         }

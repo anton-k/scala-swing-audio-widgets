@@ -27,6 +27,10 @@ trait GetWidget[A] {
     def get: A
 }
 
+trait GetWidgetAt[A,B] {
+    def getAt(a: A): B
+}
+
 trait SetColor {
     def setColor(color: Color): Unit
 }
@@ -282,7 +286,11 @@ case class ToggleButton(init: Boolean, var color: Color, var text: Option[String
     }
 }
 
-case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) extends Component with SetWidget[((Int, Int), Boolean)] with SetTextList {
+case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) 
+extends Component 
+with SetWidget[((Int, Int), Boolean)] 
+with GetWidgetAt[(Int,Int),Boolean] 
+with SetTextList {
     var current = init
 
     for (x <- 0 until nx) {
@@ -373,6 +381,8 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val colo
         }
 
     }
+
+    def getAt(cell: (Int, Int)): Boolean = isPressed(cell)
 
     def textListLength = nx * ny
 

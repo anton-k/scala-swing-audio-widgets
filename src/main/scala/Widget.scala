@@ -1,6 +1,6 @@
 import scala.swing._
 import scala.swing.event._
-import java.awt.{Color,Graphics2D,BasicStroke,Font}
+import java.awt.{Color,Graphics2D,BasicStroke,Font,KeyboardFocusManager}
 import java.awt.geom._
 import javax.swing.{SwingUtilities,JFrame}
 import javax.swing.{UIManager}
@@ -1301,7 +1301,7 @@ case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) exte
     onSet(init)        
 
     reactions += {
-        case SelectionChanged(`widget`) => onSet(widget.selection.index)
+        case SelectionChanged(`widget`) => { onSet(widget.selection.index); setFocus }
     } 
 
     def set(value: Int, fireCallback: Boolean) {
@@ -1315,6 +1315,11 @@ case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) exte
     def get: Int = widget.selection.index
 
     def setColor(color: Color) {}
+
+    private def setFocus {
+        val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+        manager.focusNextComponent
+    }
 }
 
 case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit) extends FlowPanel with SetWidget[String] with GetWidget[String] with SetColor {
@@ -1355,13 +1360,15 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
         case KeyPressed(_, Key.Enter, _, _) => {
             onSet(textField.text)
             blink
-            setFocusToRoot
+            setFocus
         }
     }
 
-    private def setFocusToRoot {
-        val topFrame = SwingUtilities.getWindowAncestor(this.peer).asInstanceOf[JFrame]
-        topFrame.requestFocusInWindow()
+    private def setFocus {
+        val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+        manager.focusNextComponent
+        //val topFrame = SwingUtilities.getWindowAncestor(this.peer).asInstanceOf[JFrame]
+        //topFrame.requestFocusInWindow()
     }
 
     def set(value: String, fireCallback: Boolean) {

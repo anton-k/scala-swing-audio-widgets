@@ -1422,18 +1422,18 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
     }
 }
 
-case class FileInput(var file: Option[File], var color: Color)(onSet: File => Unit) 
+case class FileInput(var file: Option[File], var color: Color, defaultTitle: String = "Get File")(onSet: File => Unit) 
     extends Component 
     with SetWidget[File] 
     with GetWidget[Option[File]]
     with SetColor {    
     preferredSize = new Dimension(150, 50)
 
-    var title = file.map(_.getName).getOrElse("Get File")
+    var title = file.map(_.getName).getOrElse(defaultTitle)
     var current = file  
 
     def setTitle {
-        title = current.map(_.getName).getOrElse("Get File")
+        title = current.map(_.getName).getOrElse(defaultTitle)
     }
 
     def getFile {

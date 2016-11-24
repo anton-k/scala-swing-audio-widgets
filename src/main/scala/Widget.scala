@@ -1489,6 +1489,103 @@ case class FileInput(var file: Option[File], var color: Color, defaultTitle: Str
     }
 }
 
+object DoubleCheck {
+    case class Orient(isFirst: Boolean, isFirstHor: Boolean, isSecondHor: Boolean) {
+        def getPreferredSize(n1: Int, n2: Int): Dimension = {
+            val nx = n1 * 50
+            val ny = 50 + 30 * n2
+            new Dimension(nx, ny)
+        }
+
+        def draw(g: Graphics2D) {
+            drawText(g)
+            drawRects(g)
+        }
+
+        def drawText(g: Graphics2D) {}
+        def drawRects(g: Graphics2D) {}
+    }
+}
+
+case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color: Color, texts: List[(String, List[String])], orient: DoubleCheck.Orient, allowDeselect: Boolean)(onSet: (Int, Int) => Unit) 
+    extends Component 
+    with SetWidget[(Int,Int)]
+    with GetWidget[(Int,Int)]
+    with SetColor {
+
+    val sizesArr = sizes.toArray
+    var current = init
+    val maxSize1 = sizes.length
+    val maxSize2 = sizes.max
+
+    preferredSize = orient.getPreferredSize(maxSize1, maxSize2)
+
+    val names1 = texts.map(_._1).toArray
+    val names2 = texts.map(_._2.toArray).toArray
+
+    listenTo(mouse.clicks)        
+
+    reactions += {
+        case MouseClicked(_, p, _, _, _) => onClick(p)
+    }
+
+    def onClick(p: Point) { 
+        getCell(p).foreach { cell => 
+            current = cell
+            onSet(current._1, current._2)
+            repaint
+        }
+    } 
+
+    def getCell(p: Point): Option[(Int, Int)] = ???
+
+    def setColor(c: Color) {
+        color = c
+        repaint
+    }
+
+    def set(value: (Int, Int), fireCallback: Boolean) {
+        current = within(value)
+        if (fireCallback) {
+            onSet(current._1, current._2)
+        }        
+        repaint
+    }
+
+    def get = current
+
+    def within(a: (Int, Int)) = {
+        val n1 = a._1
+        val n2 = a._2
+
+        val res1 = Utils.mod(n1, maxSize1)
+        val res2 = Utils.mod(n2, sizesArr(res1))
+        (res1, res2)
+    }
+
+
+    val offset = 5
+
+    override def paintComponent(g: Graphics2D) {
+        Utils.aliasingOn(g)
+        drawBorderRect(g)        
+        orient.draw(g)
+    }
+
+    def drawBorderRect(g: Graphics2D) {        
+        val d = size        
+        val x = offset
+        val y = offset
+        val w = d.width - 2 * offset
+        val h = d.height - 2 * offset
+        val arc = 2 * offset        
+        g.setColor(color)
+        g.setStroke(new BasicStroke(3f))
+        g.drawRoundRect(x, y, w, h, arc, arc)        
+    }
+
+}
+
 
 }
 

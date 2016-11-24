@@ -106,7 +106,7 @@ private object Utils {
     }
 
     def setFocus {
-        setFocusOnWindow
+        setFocusOnNext
     }
 
     private def setFocusOnWindow {

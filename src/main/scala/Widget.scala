@@ -105,6 +105,20 @@ private object Utils {
         
     }
 
+    def setFocus {
+        setFocusOnWindow
+    }
+
+    private def setFocusOnWindow {
+        val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager
+        manager.getFocusedWindow.requestFocus
+    }
+
+    private def setFocusOnNext {
+        val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+        manager.focusNextComponent
+    }
+
 }
 
 object Timer {
@@ -1301,7 +1315,7 @@ case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) exte
     onSet(init)        
 
     reactions += {
-        case SelectionChanged(`widget`) => { onSet(widget.selection.index); setFocus }
+        case SelectionChanged(`widget`) => { onSet(widget.selection.index); Utils.setFocus }
     } 
 
     def set(value: Int, fireCallback: Boolean) {
@@ -1315,11 +1329,6 @@ case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) exte
     def get: Int = widget.selection.index
 
     def setColor(color: Color) {}
-
-    private def setFocus {
-        val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-        manager.focusNextComponent
-    }
 }
 
 case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(onSet: String => Unit) extends FlowPanel with SetWidget[String] with GetWidget[String] with SetColor {
@@ -1360,15 +1369,8 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
         case KeyPressed(_, Key.Enter, _, _) => {
             onSet(textField.text)
             blink
-            setFocus
+            Utils.setFocus
         }
-    }
-
-    private def setFocus {
-        val manager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-        manager.focusNextComponent
-        //val topFrame = SwingUtilities.getWindowAncestor(this.peer).asInstanceOf[JFrame]
-        //topFrame.requestFocusInWindow()
     }
 
     def set(value: String, fireCallback: Boolean) {

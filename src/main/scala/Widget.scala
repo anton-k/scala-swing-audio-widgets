@@ -4,6 +4,7 @@ import java.awt.{Color,Graphics2D,BasicStroke,Font,KeyboardFocusManager}
 import java.awt.geom._
 import javax.swing.{SwingUtilities,JFrame}
 import javax.swing.{UIManager}
+import java.io.File
 
 package scala.swing.audio {
     package object ui {
@@ -123,6 +124,16 @@ private object Utils {
         manager.focusNextComponent
     }
 
+    def choosePlainFile(title: String = ""): Option[File] = {  
+        val chooser = new FileChooser(new File("."))
+        chooser.title = title
+        val result = chooser.showOpenDialog(null)
+        if (result == FileChooser.Result.Approve) {
+          println("Approve -- " + chooser.selectedFile)
+          Some(chooser.selectedFile)
+        } else None
+      }
+
 }
 
 object Timer {
@@ -208,7 +219,7 @@ case class PushButton(var color: Color, var text: Option[String] = None)(onClick
     def get = {}
 
     def setColor(c: Color) {
-        color = c
+        currentColor = c
         repaint
     }
 
@@ -1411,4 +1422,73 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
     }
 }
 
+case class FileInput(var file: Option[File], var color: Color)(onSet: File => Unit) 
+    extends Component 
+    with SetWidget[File] 
+    with GetWidget[Option[File]]
+    with SetColor {    
+    preferredSize = new Dimension(150, 50)
+
+    var title = file.map(_.getName).getOrElse("Get File")
+    var current = file  
+
+    def setTitle {
+        title = current.map(_.getName).getOrElse("Get File")
+    }
+
+    def getFile {
+        Utils.choosePlainFile("").foreach { res =>
+            current = Some(res)
+            onSet(res)
+            setTitle
+            repaint
+        }
+    }
+
+    listenTo(mouse.clicks)        
+
+    reactions += {
+        case MouseClicked(_, _, _, _, _) =>             
+            getFile            
+    }
+
+    private val offset = 5
+
+    override def paintComponent(g: Graphics2D) {
+        Utils.aliasingOn(g)
+        val d = size
+        val x = offset
+        val y = offset
+        val w = d.width - 2 * offset
+        val h = d.height - 2 * offset
+        val arc = 2 * offset
+        g.setColor(color)
+        g.setStroke(new BasicStroke(3f))
+        g.drawRoundRect(x, y, w, h, arc, arc)
+        g.drawRoundRect(x + offset, y + offset, w - 2 * offset, h - 2 * offset, arc, arc)
+
+        g.setColor(Color.BLACK)            
+        Utils.drawCenteredString(g, title, new Rectangle(x, y, w, h))        
+    }
+
+    def set(value: File, fireCallback: Boolean = true) {
+        if (fireCallback) {          
+            onSet(value)
+        }      
+        current = Some(value)
+        setTitle
+        repaint
+    }
+
+
+    def get: Option[File] = current
+
+    def setColor(c: Color) {
+        color = c
+        repaint
+    }
 }
+
+
+}
+

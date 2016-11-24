@@ -286,11 +286,12 @@ case class ToggleButton(init: Boolean, var color: Color, var text: Option[String
     }
 }
 
-case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, val color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) 
-extends Component 
-with SetWidget[((Int, Int), Boolean)] 
-with GetWidgetAt[(Int,Int),Boolean] 
-with SetTextList {
+case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) 
+    extends Component 
+    with SetWidget[((Int, Int), Boolean)] 
+    with GetWidgetAt[(Int,Int),Boolean] 
+    with SetColor
+    with SetTextList {
     var current = init
 
     for (x <- 0 until nx) {
@@ -379,7 +380,7 @@ with SetTextList {
         } else {
             current = current - cell
         }
-
+        repaint
     }
 
     def getAt(cell: (Int, Int)): Boolean = isPressed(cell)
@@ -388,6 +389,11 @@ with SetTextList {
 
     def setTextAt(pos: Int, text: String) {
         textArray = Utils.setTextInArray(textListLength, textArray, pos, text)
+        repaint
+    }
+
+    def setColor(c: Color) {
+        color = c
         repaint
     }
 }
@@ -973,6 +979,7 @@ case class XYPad(initX: Float, initY: Float, var color: Color)(onSet: (Float, Fl
         if (fireCallback) {
             onSet(value._1, value._2)
         }
+        repaint
     }
 
     def get: (Float, Float) = current
@@ -1077,6 +1084,7 @@ case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
         if (fireCallback) {
             onSet(value._1, value._2)
         }
+        repaint
     } 
 
     def get: (Float, Float) = current
@@ -1181,6 +1189,7 @@ case class VFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
         if (fireCallback) {
             onSet(value._1, value._2)
         }
+        repaint
     }
 
     def get: (Float, Float) = current
@@ -1304,6 +1313,7 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), var color: C
         if (fireCallback) {
             onSet(value._1, value._2)
         }
+        repaint
     }
 
     def get = current
@@ -1334,6 +1344,7 @@ case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) exte
         if (fireCallback) {
             onSet(value)
         }
+        repaint
     } 
 
     def get: Int = widget.selection.index
@@ -1389,6 +1400,7 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
         if (fireCallback) {
             onSet(value)
         }
+        repaint
     } 
 
     def get: String = textField.text

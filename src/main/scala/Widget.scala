@@ -2,6 +2,7 @@ import scala.swing._
 import scala.swing.event._
 import java.awt.{Color,Graphics2D,BasicStroke,Font}
 import java.awt.geom._
+import javax.swing.{SwingUtilities,JFrame}
 import javax.swing.{UIManager}
 
 package scala.swing.audio {
@@ -1354,7 +1355,13 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
         case KeyPressed(_, Key.Enter, _, _) => {
             onSet(textField.text)
             blink
+            setFocusToRoot
         }
+    }
+
+    private def setFocusToRoot {
+        val topFrame = SwingUtilities.getWindowAncestor(this.peer).asInstanceOf[JFrame]
+        topFrame.requestFocusInWindow()
     }
 
     def set(value: String, fireCallback: Boolean) {

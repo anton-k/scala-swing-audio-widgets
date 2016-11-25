@@ -1567,9 +1567,13 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color: Color, tex
     val offset = 5
 
     override def paintComponent(g: Graphics2D) {
+        val (text1, text2, rects1, rects2) = getCurrentRects(size, current)        
         Utils.aliasingOn(g)
-        drawBorderRect(g)        
-        orient.draw(g)
+        drawBorderRect(g)
+        drawRects(g, rects1, current._1)
+        drawRects(g, rects2, current._2)
+        drawNames(g, text1, rects1)
+        drawNames(g, text2, rects2)
     }
 
     def drawBorderRect(g: Graphics2D) {        

@@ -5,6 +5,7 @@ import java.awt.geom._
 import javax.swing.{SwingUtilities,JFrame}
 import javax.swing.{UIManager}
 import java.io.File
+import scala.util.Either
 
 package scala.swing.audio {
     package object ui {
@@ -1491,34 +1492,110 @@ case class FileInput(var file: Option[File], var color: Color, defaultTitle: Str
 
 object DoubleCheck {
     case class Orient(isFirst: Boolean, isFirstHor: Boolean, isSecondHor: Boolean) {
-        def getPreferredSize(n1: Int, n2: Int): Dimension = {
-            val nx = n1 * 50
-            val ny = 50 + 30 * n2
-            new Dimension(nx, ny)
-        }
-
-        def draw(g: Graphics2D) {
-            drawText(g)
-            drawRects(g)
-        }
-
-        def drawText(g: Graphics2D) {}
-        def drawRects(g: Graphics2D) {}
+        val isFirstVer = !isFirstHor
+        val isSecondVer = !isSecondHor
     }
+
 }
 
-case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color: Color, texts: List[(String, List[String])], orient: DoubleCheck.Orient, allowDeselect: Boolean)(onSet: (Int, Int) => Unit) 
+case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, var color2: Color, texts: List[(String, List[String])], orient: DoubleCheck.Orient, allowDeselect: Boolean)(onSet: (Int, Int) => Unit) 
     extends Component 
     with SetWidget[(Int,Int)]
-    with GetWidget[(Int,Int)]
-    with SetColor {
+    with GetWidget[(Int,Int)] {
+
+    val textColor = Color.BLACK
 
     val sizesArr = sizes.toArray
     var current = init
     val maxSize1 = sizes.length
     val maxSize2 = sizes.max
+    var currentFirst = init._1
 
-    preferredSize = orient.getPreferredSize(maxSize1, maxSize2)
+    val textHeight = 30
+    val textWidth = 90
+
+    preferredSize = (
+        if (orient.isFirstHor && orient.isSecondHor) {
+            (maxSize1.max(maxSize2), 2)
+        } else if (orient.isFirstVer && orient.isSecondVer) {
+            (2, maxSize1.max(maxSize2))
+        } else if (orient.isFirstHor && orient.isSecondVer) {
+            (maxSize1, (maxSize2 + 1))
+        } else if (orient.isFirstVer && orient.isSecondHor) {
+            (1 + maxSize2, maxSize1)
+        } else (maxSize1, maxSize2) ) match {
+            case (x, y) => new Dimension(x * textWidth, y * textHeight)
+        }       
+
+    def getBoundingRects = 
+        ((if (orient.isFirstHor && orient.isSecondHor) {
+            val mid = (size.height * 0.5f).toInt
+            ( (0, 0, size.width, mid)
+            , (0, mid, size.width, mid))
+        } else if (orient.isFirstVer && orient.isSecondVer) {
+            val mid = (size.width * 0.5f).toInt 
+            ( (0, 0, mid, size.height)
+            , (mid, 0, mid, size.height) )
+        } else if (orient.isFirst && orient.isFirstHor && orient.isSecondVer) {
+            val mid = (size.height * (1.0f / (maxSize2 + 1))).toInt
+            ( (0, 0, size.width, mid)
+            , (0, mid, size.width, size.height - mid) )
+        } else if (!orient.isFirst && orient.isFirstHor && orient.isSecondVer) {
+            val mid = (size.height * (maxSize2.toFloat / (maxSize2 + 1))).toInt
+            ( (0, 0, size.width, mid)
+            , (0, mid, size.width, size.height - mid) )            
+        } else if (orient.isFirst && orient.isFirstVer && orient.isSecondHor) {
+            val mid = (size.width * (1.0f / (maxSize2 + 1))).toInt
+            ( (0, 0, mid, size.height)
+            , (mid, 0, size.width - mid, size.height) )
+        } else if (!orient.isFirst && orient.isFirstVer && orient.isSecondHor) {
+            val mid = (size.width * (maxSize2.toFloat / (maxSize2 + 1))).toInt
+            ( (0, 0, mid, size.height)
+            , (mid, 0, size.width - mid, size.height) )       
+        } else { 
+            val mid = (size.height * 0.5f).toInt
+            ( (0, 0, size.width, mid)
+            , (0, mid, size.width, mid))
+        }) match {
+            case (r1, r2) => if (!orient.isFirst && (orient.isFirstHor != orient.isSecondHor)) (r2, r1) else (r1, r2)
+        }) match {
+            case ((x1, y1, w1, h1), (x2, y2, w2, h2)) => (new Rectangle(x1, y1, w1, h1), new Rectangle(x2 + offset, y2 + offset, w2 - 2 * offset, h2 - 2 * offset))
+        }
+
+    def getCurrentRects = {
+        val (rects1, rects2) = getAllRects
+        (rects1, rects2.take(sizesArr(currentFirst)))
+    }
+
+    def getAllRects = {
+        val (boundRect1, boundRect2) = getBoundingRects 
+
+        val rects1 = if (orient.isFirstHor)  getHorRects(boundRect1, maxSize1) else getVerRects(boundRect1, maxSize1)
+        val rects2 = if (orient.isSecondHor) getHorRects(boundRect2, maxSize2) else getVerRects(boundRect2, maxSize2)
+
+        (rects1, rects2)
+    }
+    
+
+    def getHorRects(boundRect: Rectangle, maxSize: Int): List[Rectangle] = {
+        val dw = boundRect.width.toFloat / maxSize
+        def rect(ix: Int) = new Rectangle(
+            (boundRect.x + offset * 0.5f + dw * ix).toInt, (boundRect.y + offset * 0.5f).toInt, 
+            (dw - offset).toInt, (boundRect.height - offset).toInt)
+
+        (0 until maxSize).map(rect).toList
+    }
+
+    def getVerRects(boundRect: Rectangle, maxSize: Int): List[Rectangle] = {
+        val dh = boundRect.height.toFloat / maxSize
+
+        def rect(ix: Int) = new Rectangle(
+            (boundRect.x + 0.5f * offset).toInt, (boundRect.y +  offset * 0.5f + dh * ix).toInt, 
+            (boundRect.width - offset).toInt, (dh - offset).toInt)
+
+        (0 until maxSize).map(rect).toList
+    }
+
 
     val names1 = texts.map(_._1).toArray
     val names2 = texts.map(_._2.toArray).toArray
@@ -1530,19 +1607,53 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color: Color, tex
     }
 
     def onClick(p: Point) { 
-        getCell(p).foreach { cell => 
-            current = cell
-            onSet(current._1, current._2)
-            repaint
+        getCell(p).foreach { 
+            case Left(ix)  => onFirstSelect(ix)
+            case Right(ix) => onSecondSelect(ix)            
         }
     } 
 
-    def getCell(p: Point): Option[(Int, Int)] = ???
+    def onFirstSelect(ix: Int) {  
+        if (currentFirst != ix) {
+            currentFirst = ix        
+            repaint
+        }
+    }
 
-    def setColor(c: Color) {
-        color = c
+    def onSecondSelect(ix: Int) {
+        current = (currentFirst, ix)
+        onSet(current._1, current._2)
+        repaint  
+    }
+
+    def findCellInRect(r: List[Rectangle], p: Point) = 
+        r.zipWithIndex.find({case (r, ix) => r.contains(p)}) match {
+            case Some((r, ix)) => Some(ix)
+            case None => None
+        }
+
+    def getCell(p: Point): Option[Either[Int,Int]] = {
+        val (rects1, rects2) = getCurrentRects
+        findCellInRect(rects1, p) match {
+            case Some(ix) => Some(Left(ix))
+            case None     => findCellInRect(rects2, p) match {
+                    case Some(ix) => Some(Right(ix))
+                    case None     => None
+                }
+        }
+    }
+        
+
+
+    def setColor1(c: Color) {
+        color1 = c
         repaint
     }
+
+    def setColor2(c: Color) {
+        color2 = c
+        repaint
+    }    
 
     def set(value: (Int, Int), fireCallback: Boolean) {
         current = within(value)
@@ -1563,31 +1674,50 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color: Color, tex
         (res1, res2)
     }
 
-
-    val offset = 5
+    val offset = 5 
+    val arc = 2 * offset   
 
     override def paintComponent(g: Graphics2D) {
-        val (text1, text2, rects1, rects2) = getCurrentRects(size, current)        
+        val (text1, text2) = getCurrentTexts
+        val (rects1, rects2) = getCurrentRects
         Utils.aliasingOn(g)
         drawBorderRect(g)
-        drawRects(g, rects1, current._1)
-        drawRects(g, rects2, current._2)
+        drawRects(g, color1, rects1, currentFirst)
+        drawRects(g, color2, rects2, if (currentFirst == current._1) current._2 else -1)
         drawNames(g, text1, rects1)
         drawNames(g, text2, rects2)
     }
 
     def drawBorderRect(g: Graphics2D) {        
         val d = size        
-        val x = offset
-        val y = offset
-        val w = d.width - 2 * offset
-        val h = d.height - 2 * offset
-        val arc = 2 * offset        
-        g.setColor(color)
-        g.setStroke(new BasicStroke(3f))
+        val x = (offset * 0.5f).toInt
+        val y = (offset * 0.5f).toInt
+        val w = d.width - offset
+        val h = d.height - offset        
+        g.setColor(color1)
+        g.setStroke(new BasicStroke(2f))
         g.drawRoundRect(x, y, w, h, arc, arc)        
     }
 
+    def drawNames(g: Graphics2D, texts: Seq[String], rects: Seq[Rectangle]) {
+        g.setColor(textColor)
+        rects.zip(texts).map({ case (rect, text) => Utils.drawCenteredString(g, text, rect) })
+    }
+
+    def drawRects(g: Graphics2D, color: Color, rects: Seq[Rectangle], choice: Int) {
+        g.setColor(color)
+        rects.zipWithIndex.map( { case (rect, ix) => 
+            if (ix == choice) {
+                g.fillRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)        
+            } else {
+                g.setStroke(new BasicStroke(2f))
+                g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)        
+            }
+
+        } )
+    }
+
+    def getCurrentTexts: (Array[String], Array[String]) = (names1, names2(currentFirst))
 }
 
 

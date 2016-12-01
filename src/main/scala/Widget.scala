@@ -1423,7 +1423,7 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
     }
 }
 
-case class FileInput(var file: Option[File], var color: Color, defaultTitle: String = "Get File")(onSet: File => Unit) 
+case class FileInput(var file: Option[File], var color: Color, var defaultTitle: String = "Get File")(onSet: File => Unit) 
     extends Component 
     with SetWidget[File] 
     with GetWidget[Option[File]]
@@ -1597,8 +1597,8 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
     }
 
 
-    val names1 = texts.map(_._1).toArray
-    val names2 = texts.map(_._2.toArray).toArray
+    var names1 = texts.map(_._1).toArray
+    var names2 = texts.map(_._2.toArray).toArray
 
     listenTo(mouse.clicks)        
 
@@ -1620,9 +1620,11 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         }
     }
 
-    def onSecondSelect(ix: Int) {
+    def onSecondSelect(ix: Int, fireCallback: Boolean = true) {
         current = (currentFirst, ix)
-        onSet(current._1, current._2)
+        if (fireCallback) {
+            onSet(current._1, current._2)
+        }        
         repaint  
     }
 
@@ -1718,6 +1720,25 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
     }
 
     def getCurrentTexts: (Array[String], Array[String]) = (names1, names2(currentFirst))
+
+    def setTextAt1(x: Int, name: String) {
+        if (x < maxSize1) {
+            names1(x) = name
+        }
+    }
+
+    def setTextAt2(x: Int, y: Int, name: String) {
+        if (x < maxSize1) {
+            val size2 = sizesArr(x)
+            if (y < size2) {
+                names2(x)(y) = name
+
+            }
+        }
+    }
+
+    def textListLength1 = maxSize1
+    def textListLength2(x: Int) = sizesArr(Utils.mod(x, maxSize1))
 }
 
 

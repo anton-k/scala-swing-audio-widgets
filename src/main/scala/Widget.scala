@@ -843,7 +843,7 @@ case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit
     }
 
     def set(value: Float, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBounds(0, 1)(value)
+        val boundedValue = Utils.withinBounds(range._1, range._2)(value)
         if (fireCallback) {
             onSet(boundedValue)
         }
@@ -910,7 +910,7 @@ case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 
     }
 
     def set(value: Float, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBounds(0, 1)(value)
+        val boundedValue = Utils.withinBounds(range._1, range._2)(value)
         if (fireCallback) {
             onSet(boundedValue)
         }

@@ -582,7 +582,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 }
 
 
-case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
+case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
 
@@ -792,9 +792,10 @@ case class IntDial(init: Int, range: (Int, Int), var color: Color)(implicit onSe
 }
 
 
-case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit = x => println(s"HFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
+case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit onSet: Float => Unit = x => println(s"HFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
+    def currentRel = (current - range._1) / (range._2 - range._1)
 
     preferredSize = new Dimension(200, 40)
     val bkgColor = Color.GRAY
@@ -821,7 +822,7 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
     private val offset = 5
 
     def getCurrentValue(p: Point) = 
-        Utils.linearValueWithoutOffset(p.x, size.width, offset)    
+        Utils.linearValueWithoutOffset(p.x, size.width, offset) * (range._2 - range._1) + range._1    
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -836,7 +837,7 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
         g.fillRoundRect(px, py, w, h, arc, arc)
 
         g.setColor(color)
-        g.fillRoundRect(px, py, (w * current).toInt, h, arc, arc)
+        g.fillRoundRect(px, py, (w * currentRel).toInt, h, arc, arc)
         g.setStroke(new BasicStroke(2f))
         g.drawRoundRect(px, py, w, h, arc, arc)
     }
@@ -859,9 +860,10 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
 }
 
 
-case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit = x => println(s"VFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
+case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 1.0f))(implicit onSet: Float => Unit = x => println(s"VFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
+    def currentRel = (current - range._1) / (range._2 - range._1)
 
     preferredSize = new Dimension(40, 200)
     val bkgColor = Color.GRAY
@@ -873,7 +875,6 @@ case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
     
-
     reactions += {
         case MouseDragged(_, p, _) => {
             val userValue = getCurrentValue(p)
@@ -888,7 +889,7 @@ case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
     private val offset = 5
 
     def getCurrentValue(p: Point) = 
-        1 - Utils.linearValueWithoutOffset(p.y, size.height, offset)    
+        (1 - Utils.linearValueWithoutOffset(p.y, size.height, offset)) * (range._2 - range._1) + range._1
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -903,7 +904,7 @@ case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
         g.fillRoundRect(px, py, w, h, arc, arc)
 
         g.setColor(color)
-        g.fillRoundRect(px, py + (h * (1 - current)).toInt, w, (h * current).toInt, arc, arc)
+        g.fillRoundRect(px, py + (h * (1 - currentRel)).toInt, w, (h * currentRel).toInt, arc, arc)
         g.setStroke(new BasicStroke(2f))
         g.drawRoundRect(px, py, w, h, arc, arc)
     }

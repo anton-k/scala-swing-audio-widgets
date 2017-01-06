@@ -803,7 +803,7 @@ case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit
     listenTo(mouse.clicks)
     listenTo(mouse.moves) 
 
-    private def eps = 0.1
+    private def eps = (0.1 * (range._2 - range._1))
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
     
@@ -871,7 +871,7 @@ case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 
     listenTo(mouse.clicks)
     listenTo(mouse.moves) 
 
-    private def eps = 0.1
+    private def eps = (0.1 * (range._2 - range._1))
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
     

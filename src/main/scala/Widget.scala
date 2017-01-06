@@ -387,12 +387,16 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
         val isPressed = value._2
         val cell = value._1
 
+        if (fireCallback) {
+            onClick(cell, isPressed)
+        }
+        
         if (isPressed) {
             current = current + cell
         } else {
             current = current - cell
         }
-        repaint
+        repaint        
     }
 
     def getAt(cell: (Int, Int)): Boolean = isPressed(cell)

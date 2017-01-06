@@ -600,7 +600,7 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
     reactions += {
         case MouseDragged(_, p, _) => if (isNearValue(p)) {            
             val userValue = getCurrentValue((p.x.toFloat, p.y.toFloat))
-            if (Math.abs(userValue - current) < 0.1) {               
+            if (Math.abs(userValue - current) < 0.1f * (range._2 - range._1)) {               
                 onSet(userValue)
                 current = userValue
                 repaint
@@ -614,7 +614,7 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
     private def toDegrees(x: Float) = (360 * x).toInt    
 
     private def toTau(t: Float) = {
-        val r = (1 - 2 * angleOffset) * current
+        val r = (1 - 2 * angleOffset) * currentRel
         0.75f - angleOffset - r
     }
 

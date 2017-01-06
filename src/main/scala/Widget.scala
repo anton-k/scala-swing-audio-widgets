@@ -585,6 +585,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
+    def currentRel = (current - range._1) / (range._2 - range._1)
 
     preferredSize = new Dimension(70, 70)
     private val bkgColor = Color.GRAY
@@ -594,7 +595,7 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
 
     private val eps = 17   
 
-    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(current)) < eps  
+    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(currentRel)) < eps  
     
     reactions += {
         case MouseDragged(_, p, _) => if (isNearValue(p)) {            
@@ -617,7 +618,9 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
         0.75f - angleOffset - r
     }
 
-    private def getCurrentValue(p: (Float, Float)) = {
+    private def getCurrentValue(p: (Float, Float)) = getCurrentValueRel(p) * (range._2 - range._1) + range._1
+
+    private def getCurrentValueRel(p: (Float, Float)) = {
         val (cx, cy, _) = getCenterAndRad()
         val r = (Utils.getDecimal(1 - (Math.atan2(-(p._2 - cy), p._1 - cx) / (2 * Math.PI) + 0.25))).toFloat
         (Utils.withinBounds(angleOffset, 1 - angleOffset)(r) - angleOffset) / (1 - 2 * angleOffset)
@@ -638,7 +641,7 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
                             BasicStroke.CAP_BUTT,    // End-cap style
                             BasicStroke.JOIN_ROUND)); // Vertex join style
 
-        val r = (1 - 2 * angleOffset) * current
+        val r = (1 - 2 * angleOffset) * currentRel
         g.setColor(bkgColor)     
         g.drawArc(x, y, diam, diam, 0, 360)   
         g.setColor(color)     
@@ -663,7 +666,7 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
     }
 
     def set(value: Float, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBounds(0, 1)(value)
+        val boundedValue = Utils.withinBounds(range._1, range._2)(value)
         if (fireCallback) {
             onSet(boundedValue)
         }

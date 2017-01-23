@@ -135,6 +135,25 @@ private object Utils {
         } else None
       }
 
+    def getRad(d: Dimension, offset: Int) = {        
+        val w = d.width - 2 * offset
+        val h = d.height - 2 * offset 
+        ((w min h) * 0.5f).toInt
+    }
+
+    def getCenter(d: Dimension) = {
+        val cx = (d.width * 0.5).toInt
+        val cy = (d.height * 0.5).toInt
+        (cx, cy)
+    }
+
+    def isPointWithin(d: Dimension, offset: Int)(p: Point) = {
+        val (cx, cy) = getCenter(d)
+        val rad = getRad(d, offset)
+        val x = p.x - cx
+        val y = p.y - cy
+        x * x + y * y < rad * rad
+    }
 }
 
 object Timer {
@@ -230,6 +249,60 @@ case class PushButton(var color: Color, var text: Option[String] = None)(onClick
     }
 }
 
+case class CirclePushButton(var color: Color)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor {    
+    preferredSize = new Dimension(20, 20)
+
+    listenTo(mouse.clicks)
+    val clickColor = Color.BLACK
+    var currentColor = color
+
+    private def updateColor(col: Color) {
+        currentColor = col
+        repaint()
+    }
+
+    private def blink {
+        updateColor(clickColor)
+        Timer(140, repeats = false) {
+           updateColor(color)
+        }
+    }
+
+    reactions += {
+        case MouseClicked(_, p, _, _, _) =>  
+            if (Utils.isPointWithin(size, offset)(p)) {
+                onClick
+                blink
+            }
+    }
+
+    private val offset = 5
+
+    override def paintComponent(g: Graphics2D) {
+        Utils.aliasingOn(g)
+        val (cx, cy) = Utils.getCenter(size)
+        val rad = Utils.getRad(size, offset)
+        g.setColor(currentColor)
+        g.fillOval(cx - rad, cy - rad, 2 * rad, 2 * rad)
+    }
+
+    def set(value: Unit, fireCallback: Boolean = true) {
+        if (fireCallback) {
+            onClick
+        }
+        blink
+    }
+
+    def get = {}
+
+    def setColor(c: Color) {
+        currentColor = c
+        repaint
+    }
+}
+
+
+
 object ToggleButton {
     private def defaultOnClick(b: Boolean) = println(s"ToggleButton: ${b}")    
 }
@@ -297,6 +370,68 @@ case class ToggleButton(init: Boolean, var color: Color, var text: Option[String
         repaint
     }
 }
+
+
+object CircleToggleButton {
+    private def defaultOnClick(b: Boolean) = println(s"CircleToggleButton: ${b}")    
+}
+
+case class CircleToggleButton(init: Boolean, var color: Color)
+    (implicit onClick: Boolean => Unit = CircleToggleButton.defaultOnClick) 
+    extends Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor {
+        
+    onClick(init)
+
+    preferredSize = new Dimension(20, 20)
+
+    listenTo(mouse.clicks)    
+    var current = init
+
+    reactions += {
+        case MouseClicked(_, p, _, _, _) => 
+            if (Utils.isPointWithin(size, offset)(p)) {
+                current = !current
+                onClick(current)            
+                repaint
+            }
+    }
+
+    private val offset = 5
+
+    override def paintComponent(g: Graphics2D) {
+        Utils.aliasingOn(g)
+        val (cx, cy) = Utils.getCenter(size)
+        val rad = Utils.getRad(size, offset)        
+        g.setColor(color)
+        val x = cx - rad
+        val y = cy - rad
+        val w = 2 * rad
+        val h = 2 * rad
+        
+        if (current)
+            g.fillOval(x, y, w, h)
+        else
+            g.setStroke(new BasicStroke(3f))
+            g.drawOval(x, y, w, h)         
+    }
+
+    def set(value: Boolean, fireCallback: Boolean) {
+        current = value
+        repaint
+        if (fireCallback) {
+            onClick(current)
+        }
+    }
+
+
+    def get = current
+
+    def setColor(c: Color) {
+        color = c
+        repaint
+    }
+}
+
 
 case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) 
     extends Component 

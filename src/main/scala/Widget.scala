@@ -382,7 +382,7 @@ case class CircleToggleButton(init: Boolean, var color: Color)
         
     onClick(init)
 
-    preferredSize = new Dimension(20, 20)
+    preferredSize = new Dimension(35, 35)
 
     listenTo(mouse.clicks)    
     var current = init

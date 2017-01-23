@@ -522,12 +522,16 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
         val isPressed = value._2
         val cell = value._1
 
+        if (fireCallback) {
+            onClick(cell, isPressed)
+        }
+        
         if (isPressed) {
             current = current + cell
         } else {
             current = current - cell
         }
-        repaint
+        repaint        
     }
 
     def getAt(cell: (Int, Int)): Boolean = isPressed(cell)
@@ -713,9 +717,10 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 }
 
 
-case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
+case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit onSet: Float => Unit = x => println(s"Dial: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
+    def currentRel = (current - range._1) / (range._2 - range._1)
 
     preferredSize = new Dimension(70, 70)
     private val bkgColor = Color.GRAY
@@ -725,12 +730,12 @@ case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x
 
     private val eps = 17   
 
-    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(current)) < eps  
+    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(currentRel)) < eps  
     
     reactions += {
         case MouseDragged(_, p, _) => if (isNearValue(p)) {            
             val userValue = getCurrentValue((p.x.toFloat, p.y.toFloat))
-            if (Math.abs(userValue - current) < 0.1) {               
+            if (Math.abs(userValue - current) < 0.1f * (range._2 - range._1)) {               
                 onSet(userValue)
                 current = userValue
                 repaint
@@ -744,11 +749,13 @@ case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x
     private def toDegrees(x: Float) = (360 * x).toInt    
 
     private def toTau(t: Float) = {
-        val r = (1 - 2 * angleOffset) * current
+        val r = (1 - 2 * angleOffset) * currentRel
         0.75f - angleOffset - r
     }
 
-    private def getCurrentValue(p: (Float, Float)) = {
+    private def getCurrentValue(p: (Float, Float)) = getCurrentValueRel(p) * (range._2 - range._1) + range._1
+
+    private def getCurrentValueRel(p: (Float, Float)) = {
         val (cx, cy, _) = getCenterAndRad()
         val r = (Utils.getDecimal(1 - (Math.atan2(-(p._2 - cy), p._1 - cx) / (2 * Math.PI) + 0.25))).toFloat
         (Utils.withinBounds(angleOffset, 1 - angleOffset)(r) - angleOffset) / (1 - 2 * angleOffset)
@@ -769,7 +776,7 @@ case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x
                             BasicStroke.CAP_BUTT,    // End-cap style
                             BasicStroke.JOIN_ROUND)); // Vertex join style
 
-        val r = (1 - 2 * angleOffset) * current
+        val r = (1 - 2 * angleOffset) * currentRel
         g.setColor(bkgColor)     
         g.drawArc(x, y, diam, diam, 0, 360)   
         g.setColor(color)     
@@ -794,7 +801,7 @@ case class Dial(init: Float, var color: Color)(implicit onSet: Float => Unit = x
     }
 
     def set(value: Float, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBounds(0, 1)(value)
+        val boundedValue = Utils.withinBounds(range._1, range._2)(value)
         if (fireCallback) {
             onSet(boundedValue)
         }
@@ -923,9 +930,10 @@ case class IntDial(init: Int, range: (Int, Int), var color: Color)(implicit onSe
 }
 
 
-case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit = x => println(s"HFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
+case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit onSet: Float => Unit = x => println(s"HFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
+    def currentRel = (current - range._1) / (range._2 - range._1)
 
     preferredSize = new Dimension(200, 40)
     val bkgColor = Color.GRAY
@@ -933,7 +941,7 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
     listenTo(mouse.clicks)
     listenTo(mouse.moves) 
 
-    private def eps = 0.1
+    private def eps = (0.1 * (range._2 - range._1))
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
     
@@ -952,7 +960,7 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
     private val offset = 5
 
     def getCurrentValue(p: Point) = 
-        Utils.linearValueWithoutOffset(p.x, size.width, offset)    
+        Utils.linearValueWithoutOffset(p.x, size.width, offset) * (range._2 - range._1) + range._1    
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -967,13 +975,13 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
         g.fillRoundRect(px, py, w, h, arc, arc)
 
         g.setColor(color)
-        g.fillRoundRect(px, py, (w * current).toInt, h, arc, arc)
+        g.fillRoundRect(px, py, (w * currentRel).toInt, h, arc, arc)
         g.setStroke(new BasicStroke(2f))
         g.drawRoundRect(px, py, w, h, arc, arc)
     }
 
     def set(value: Float, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBounds(0, 1)(value)
+        val boundedValue = Utils.withinBounds(range._1, range._2)(value)
         if (fireCallback) {
             onSet(boundedValue)
         }
@@ -990,9 +998,10 @@ case class HFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
 }
 
 
-case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit = x => println(s"VFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
+case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 1.0f))(implicit onSet: Float => Unit = x => println(s"VFader: ${x}")) extends Component with SetWidget[Float] with GetWidget[Float] with SetColor {
     var current = init
     onSet(current)
+    def currentRel = (current - range._1) / (range._2 - range._1)
 
     preferredSize = new Dimension(40, 200)
     val bkgColor = Color.GRAY
@@ -1000,11 +1009,10 @@ case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
     listenTo(mouse.clicks)
     listenTo(mouse.moves) 
 
-    private def eps = 0.1
+    private def eps = (0.1 * (range._2 - range._1))
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
     
-
     reactions += {
         case MouseDragged(_, p, _) => {
             val userValue = getCurrentValue(p)
@@ -1019,7 +1027,7 @@ case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
     private val offset = 5
 
     def getCurrentValue(p: Point) = 
-        1 - Utils.linearValueWithoutOffset(p.y, size.height, offset)    
+        (1 - Utils.linearValueWithoutOffset(p.y, size.height, offset)) * (range._2 - range._1) + range._1
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -1034,13 +1042,13 @@ case class VFader(init: Float, var color: Color)(implicit onSet: Float => Unit =
         g.fillRoundRect(px, py, w, h, arc, arc)
 
         g.setColor(color)
-        g.fillRoundRect(px, py + (h * (1 - current)).toInt, w, (h * current).toInt, arc, arc)
+        g.fillRoundRect(px, py + (h * (1 - currentRel)).toInt, w, (h * currentRel).toInt, arc, arc)
         g.setStroke(new BasicStroke(2f))
         g.drawRoundRect(px, py, w, h, arc, arc)
     }
 
     def set(value: Float, fireCallback: Boolean) {
-        val boundedValue = Utils.withinBounds(0, 1)(value)
+        val boundedValue = Utils.withinBounds(range._1, range._2)(value)
         if (fireCallback) {
             onSet(boundedValue)
         }

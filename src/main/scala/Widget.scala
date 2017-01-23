@@ -185,7 +185,7 @@ case class Text(var text: String, var color: Color) extends Component with SetTe
 }
 
 case class PushButton(var color: Color, var text: Option[String] = None)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor with SetText {    
-    preferredSize = new Dimension(50, 50)
+    preferredSize = new Dimension(50, 35)
 
     listenTo(mouse.clicks)
     val clickColor = Color.BLACK
@@ -250,7 +250,7 @@ case class PushButton(var color: Color, var text: Option[String] = None)(onClick
 }
 
 case class CirclePushButton(var color: Color)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor {    
-    preferredSize = new Dimension(20, 20)
+    preferredSize = new Dimension(35, 35)
 
     listenTo(mouse.clicks)
     val clickColor = Color.BLACK
@@ -313,7 +313,7 @@ case class ToggleButton(init: Boolean, var color: Color, var text: Option[String
         
     onClick(init)
 
-    preferredSize = new Dimension(50, 50)
+    preferredSize = new Dimension(50, 35)
 
     listenTo(mouse.clicks)    
     var current = init
@@ -1571,7 +1571,7 @@ case class FileInput(var file: Option[File], var color: Color, var defaultTitle:
     with SetWidget[File] 
     with GetWidget[Option[File]]
     with SetColor {    
-    preferredSize = new Dimension(150, 50)
+    preferredSize = new Dimension(150, 35)
 
     var title = file.map(_.getName).getOrElse(defaultTitle)
     var current = file  

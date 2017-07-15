@@ -21,7 +21,7 @@ package scala.swing.audio {
 package scala.swing.audio.ui {
 
 trait SetWidget[A] {
-    def set(value: A, fireCallback: Boolean): Unit    
+    def set(value: A, fireCallback: Boolean): Unit
 }
 
 
@@ -48,21 +48,21 @@ trait SetTextList {
 
 private object Utils {
     def aliasingOn(g: Graphics2D) {
-        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
+        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
             java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
     }
 
     def getDecimal(x: Double) = x - Math.floor(x)
 
-    def withinBounds(minVal: Float, maxVal: Float)(x: Float) = 
+    def withinBounds(minVal: Float, maxVal: Float)(x: Float) =
         if (x < minVal) minVal
         else if (x > maxVal) maxVal
         else x
 
-    def withinBoundsInt(minVal: Int, maxVal: Int)(x: Int) = 
+    def withinBoundsInt(minVal: Int, maxVal: Int)(x: Int) =
         if (x < minVal) minVal
         else if (x > maxVal) maxVal
-        else x        
+        else x
 
     def mod(a: Int, b: Int) = {
         val res = a % b
@@ -79,7 +79,7 @@ private object Utils {
         value * (total - 2 * offset) + offset
 
 
-    def distance(a: (Float, Float), b: (Float, Float)) = 
+    def distance(a: (Float, Float), b: (Float, Float)) =
         Math.sqrt( Math.pow(a._1 - b._1, 2) + Math.pow(a._2 - b._2, 2) ).toFloat
 
 
@@ -93,22 +93,22 @@ private object Utils {
         // Set the font
         g.setFont(font);
         // Draw the String
-        g.drawString(text, x, y);        
+        g.drawString(text, x, y);
     }
 
 
     def setTextInArray(maxListLength: Int, textArray: Array[String], pos: Int, text: String) = {
         if (pos < maxListLength) {
-            var resTextArray = 
+            var resTextArray =
                 if (pos >= textArray.length) {
-                    textArray ++ Array.fill(pos - textArray.length + 1)("")                
+                    textArray ++ Array.fill(pos - textArray.length + 1)("")
                 } else textArray
             resTextArray(pos) = text
             resTextArray
         } else {
             textArray
         }
-        
+
     }
 
     def setFocus {
@@ -125,7 +125,7 @@ private object Utils {
         manager.focusNextComponent
     }
 
-    def choosePlainFile(title: String = ""): Option[File] = {  
+    def choosePlainFile(title: String = ""): Option[File] = {
         val chooser = new FileChooser(new File("."))
         chooser.title = title
         val result = chooser.showOpenDialog(null)
@@ -135,9 +135,9 @@ private object Utils {
         } else None
       }
 
-    def getRad(d: Dimension, offset: Int) = {        
+    def getRad(d: Dimension, offset: Int) = {
         val w = d.width - 2 * offset
-        val h = d.height - 2 * offset 
+        val h = d.height - 2 * offset
         ((w min h) * 0.5f).toInt
     }
 
@@ -168,9 +168,9 @@ object Timer {
 }
 
 
-case class Text(var text: String, var color: Color) extends Component with SetText {      
-    preferredSize = new Dimension(5 * text.length + 2 * offset, 50)    
+case class Text(var text: String, var color: Color) extends Component with SetText {
     private val offset = 5
+    preferredSize = new Dimension(5 * text.length + 2 * offset, 50)
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -184,7 +184,7 @@ case class Text(var text: String, var color: Color) extends Component with SetTe
     }
 }
 
-case class PushButton(var color: Color, var text: Option[String] = None)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor with SetText {    
+case class PushButton(var color: Color, var text: Option[String] = None)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor with SetText {
     preferredSize = new Dimension(50, 35)
 
     listenTo(mouse.clicks)
@@ -204,9 +204,9 @@ case class PushButton(var color: Color, var text: Option[String] = None)(onClick
     }
 
     reactions += {
-        case MouseClicked(_, _, _, _, _) =>             
+        case MouseClicked(_, _, _, _, _) =>
             onClick
-            blink            
+            blink
     }
 
     private val offset = 5
@@ -222,7 +222,7 @@ case class PushButton(var color: Color, var text: Option[String] = None)(onClick
         g.setColor(currentColor)
         g.fillRoundRect(x, y, w, h, arc, arc)
 
-        g.setColor(Color.BLACK)            
+        g.setColor(Color.BLACK)
         text.foreach { label =>
             Utils.drawCenteredString(g, label, new Rectangle(x, y, w, h))
         }
@@ -249,7 +249,7 @@ case class PushButton(var color: Color, var text: Option[String] = None)(onClick
     }
 }
 
-case class CirclePushButton(var color: Color)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor {    
+case class CirclePushButton(var color: Color)(onClick: => Unit) extends Component with SetWidget[Unit] with SetColor {
     preferredSize = new Dimension(35, 35)
 
     listenTo(mouse.clicks)
@@ -269,7 +269,7 @@ case class CirclePushButton(var color: Color)(onClick: => Unit) extends Componen
     }
 
     reactions += {
-        case MouseClicked(_, p, _, _, _) =>  
+        case MouseClicked(_, p, _, _, _) =>
             if (Utils.isPointWithin(size, offset)(p)) {
                 onClick
                 blink
@@ -304,24 +304,24 @@ case class CirclePushButton(var color: Color)(onClick: => Unit) extends Componen
 
 
 object ToggleButton {
-    private def defaultOnClick(b: Boolean) = println(s"ToggleButton: ${b}")    
+    private def defaultOnClick(b: Boolean) = println(s"ToggleButton: ${b}")
 }
 
 case class ToggleButton(init: Boolean, var color: Color, var text: Option[String] = None)
-    (implicit onClick: Boolean => Unit = ToggleButton.defaultOnClick) 
+    (implicit onClick: Boolean => Unit = ToggleButton.defaultOnClick)
     extends Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor with SetText {
-        
+
     onClick(init)
 
     preferredSize = new Dimension(50, 35)
 
-    listenTo(mouse.clicks)    
+    listenTo(mouse.clicks)
     var current = init
 
     reactions += {
-        case MouseClicked(_, _, _, _, _) =>             
+        case MouseClicked(_, _, _, _, _) =>
             current = !current
-            onClick(current)            
+            onClick(current)
             repaint
     }
 
@@ -343,10 +343,10 @@ case class ToggleButton(init: Boolean, var color: Color, var text: Option[String
             g.setStroke(new BasicStroke(3f))
             g.drawRoundRect(x, y, w, h, arc, arc)
 
-        g.setColor(Color.BLACK)            
+        g.setColor(Color.BLACK)
         text.foreach { label =>
             Utils.drawCenteredString(g, label, new Rectangle(x, y, w, h))
-        }            
+        }
     }
 
     def set(value: Boolean, fireCallback: Boolean) {
@@ -373,25 +373,25 @@ case class ToggleButton(init: Boolean, var color: Color, var text: Option[String
 
 
 object CircleToggleButton {
-    private def defaultOnClick(b: Boolean) = println(s"CircleToggleButton: ${b}")    
+    private def defaultOnClick(b: Boolean) = println(s"CircleToggleButton: ${b}")
 }
 
 case class CircleToggleButton(init: Boolean, var color: Color)
-    (implicit onClick: Boolean => Unit = CircleToggleButton.defaultOnClick) 
+    (implicit onClick: Boolean => Unit = CircleToggleButton.defaultOnClick)
     extends Component with SetWidget[Boolean] with GetWidget[Boolean] with SetColor {
-        
+
     onClick(init)
 
     preferredSize = new Dimension(35, 35)
 
-    listenTo(mouse.clicks)    
+    listenTo(mouse.clicks)
     var current = init
 
     reactions += {
-        case MouseClicked(_, p, _, _, _) => 
+        case MouseClicked(_, p, _, _, _) =>
             if (Utils.isPointWithin(size, offset)(p)) {
                 current = !current
-                onClick(current)            
+                onClick(current)
                 repaint
             }
     }
@@ -401,18 +401,18 @@ case class CircleToggleButton(init: Boolean, var color: Color)
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
         val (cx, cy) = Utils.getCenter(size)
-        val rad = Utils.getRad(size, offset)        
+        val rad = Utils.getRad(size, offset)
         g.setColor(color)
         val x = cx - rad
         val y = cy - rad
         val w = 2 * rad
         val h = 2 * rad
-        
+
         if (current)
             g.fillOval(x, y, w, h)
         else
             g.setStroke(new BasicStroke(3f))
-            g.drawOval(x, y, w, h)         
+            g.drawOval(x, y, w, h)
     }
 
     def set(value: Boolean, fireCallback: Boolean) {
@@ -433,17 +433,17 @@ case class CircleToggleButton(init: Boolean, var color: Color)
 }
 
 
-case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit) 
-    extends Component 
-    with SetWidget[((Int, Int), Boolean)] 
-    with GetWidgetAt[(Int,Int),Boolean] 
+case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var color: Color, textColor: Color = Color.BLACK, var texts: List[String] = List())(onClick: ((Int, Int), Boolean) => Unit)
+    extends Component
+    with SetWidget[((Int, Int), Boolean)]
+    with GetWidgetAt[(Int,Int),Boolean]
     with SetColor
     with SetTextList {
     var current = init
 
     for (x <- 0 until nx) {
         for (y <- 0 until ny) {
-            val p = (x, y) 
+            val p = (x, y)
             onClick(p, isPressed(p))
         }
     }
@@ -454,7 +454,7 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
 
     preferredSize = new Dimension(30 * nx, 30 * ny)
 
-    listenTo(mouse.clicks) 
+    listenTo(mouse.clicks)
 
     def getPoint(p: Point) = {
         val x = (nx * p.x / size.width).toInt
@@ -488,13 +488,13 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
-        val d = size        
+        val d = size
         val x0 = offset
         val y0 = offset
         val arc = 2 * offset
 
         val dw = (d.width - (1 + nx) * offset) / nx
-        val dh = (d.height - (1 + ny) * offset) / ny        
+        val dh = (d.height - (1 + ny) * offset) / ny
 
         for (x <- 0 until nx) {
             for (y <- 0 until ny) {
@@ -503,12 +503,12 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
                 val py = y0 + y * offset + y * dh
 
                 if (isPressed((x, y))) {
-                    g.fillRoundRect(px, py, dw, dh, arc, arc)                    
+                    g.fillRoundRect(px, py, dw, dh, arc, arc)
                 }
                 else {
                     g.setStroke(new BasicStroke(2f))
                     g.drawRoundRect(px, py, dw, dh, arc, arc)
-                } 
+                }
 
                 getText(x, y).foreach { text =>
                     g.setColor(textColor)
@@ -525,13 +525,13 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
         if (fireCallback) {
             onClick(cell, isPressed)
         }
-        
+
         if (isPressed) {
             current = current + cell
         } else {
             current = current - cell
         }
-        repaint        
+        repaint
     }
 
     def getAt(cell: (Int, Int)): Boolean = isPressed(cell)
@@ -549,11 +549,11 @@ case class MultiToggle(init: Set[(Int, Int)], val nx: Int, val ny: Int, var colo
     }
 }
 
-case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit) 
-    extends Component 
-    with SetWidget[Int] 
-    with GetWidget[Int] 
-    with SetColor 
+case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = List(), allowDeselect: Boolean = false)(onSet: Int => Unit)
+    extends Component
+    with SetWidget[Int]
+    with GetWidget[Int]
+    with SetColor
     with SetTextList {
     var current = init
     onSet(current)
@@ -564,7 +564,7 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 
     listenTo(mouse.clicks)
 
-    private def getValue(p: Point) = 
+    private def getValue(p: Point) =
         (Utils.linearValueWithoutOffset(p.x, size.width, offset) * len).toInt
 
     reactions += {
@@ -576,19 +576,19 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
         }
     }
 
-    private val offset = 5    
+    private val offset = 5
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
-        val d = size        
+        val d = size
         val x0 = offset
         val y0 = offset
         val arc = 2 * offset
 
         val dw = (d.width - (1 + len) * offset) / len
-        val dh = (d.height - 2 * offset) 
+        val dh = (d.height - 2 * offset)
 
-        
+
         val textListLen = texts.length
         for (x <- 0 until len) {
             g.setColor(color)
@@ -596,19 +596,19 @@ case class HCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
             val py = y0
 
             if (x == current) {
-                g.fillRoundRect(px, py, dw, dh, arc, arc)                    
+                g.fillRoundRect(px, py, dw, dh, arc, arc)
             } else {
                 g.setStroke(new BasicStroke(2f))
-                g.drawRoundRect(px, py, dw, dh, arc, arc)                
+                g.drawRoundRect(px, py, dw, dh, arc, arc)
             }
 
             g.setColor(Color.BLACK)
             if (x < textListLen) {
                 val rect = new Rectangle(px, py, dw, dh)
-                Utils.drawCenteredString(g, textArray(x), new Rectangle(px, py, dw, dh))                
+                Utils.drawCenteredString(g, textArray(x), new Rectangle(px, py, dw, dh))
             }
         }
-    }  
+    }
 
     def set(value: Int, fireCallback: Boolean) {
         val boundedValue = Utils.mod(value, len)
@@ -646,7 +646,7 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 
     listenTo(mouse.clicks)
 
-    private def getValue(p: Point) = 
+    private def getValue(p: Point) =
         (Utils.linearValueWithoutOffset(p.y, size.height, offset) * len).toInt
 
     reactions += {
@@ -662,34 +662,34 @@ case class VCheck(init: Int, len: Int, var color: Color, texts: List[String] = L
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
-        val d = size        
+        val d = size
         val x0 = offset
         val y0 = offset
         val arc = 2 * offset
-        
-        val dw = (d.width - 2 * offset) 
-        val dh = (d.height - (1 + len) * offset) / len      
+
+        val dw = (d.width - 2 * offset)
+        val dh = (d.height - (1 + len) * offset) / len
 
         val textListLen = texts.length
-        for (y <- 0 until len) {   
-            g.setColor(color)         
+        for (y <- 0 until len) {
+            g.setColor(color)
             val px = x0
             val py = y0 + y * offset + y * dh
 
             if (y == current) {
-                g.fillRoundRect(px, py, dw, dh, arc, arc)                    
+                g.fillRoundRect(px, py, dw, dh, arc, arc)
             } else {
                 g.setStroke(new BasicStroke(2f))
-                g.drawRoundRect(px, py, dw, dh, arc, arc)                
+                g.drawRoundRect(px, py, dw, dh, arc, arc)
             }
 
             g.setColor(Color.BLACK)
             if (y < textListLen) {
                 val rect = new Rectangle(px, py, dw, dh)
-                Utils.drawCenteredString(g, textArray(y), new Rectangle(px, py, dw, dh))                
+                Utils.drawCenteredString(g, textArray(y), new Rectangle(px, py, dw, dh))
             }
         }
-    } 
+    }
 
     def set(value: Int, fireCallback: Boolean) {
         val boundedValue = Utils.mod(value, len)
@@ -726,27 +726,27 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
     private val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
-    private val eps = 17   
+    private val eps = 17
 
-    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(currentRel)) < eps  
-    
+    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(currentRel)) < eps
+
     reactions += {
-        case MouseDragged(_, p, _) => if (isNearValue(p)) {            
+        case MouseDragged(_, p, _) => if (isNearValue(p)) {
             val userValue = getCurrentValue((p.x.toFloat, p.y.toFloat))
-            if (Math.abs(userValue - current) < 0.1f * (range._2 - range._1)) {               
+            if (Math.abs(userValue - current) < 0.1f * (range._2 - range._1)) {
                 onSet(userValue)
                 current = userValue
                 repaint
-            }                
-        }        
+            }
+        }
     }
 
     private val offset = 12
     private val angleOffset = 0.08f
 
-    private def toDegrees(x: Float) = (360 * x).toInt    
+    private def toDegrees(x: Float) = (360 * x).toInt
 
     private def toTau(t: Float) = {
         val r = (1 - 2 * angleOffset) * currentRel
@@ -767,20 +767,20 @@ case class Dial(init: Float, var color: Color, range: (Float, Float))(implicit o
         val x = offset + (if (d.width < d.height)  0 else (0.5f * (d.width - d.height)).toInt)
         val y = offset + (if (d.width >= d.height) 0 else (0.5f * (d.height - d.width)).toInt)
         val diam = Math.min(d.width, d.height) - 2 * offset
-       
+
         val rad = (diam * 0.5f).toInt
         //g.drawLine(x + rad, y, x + rad, y + diam)
         //g.drawLine(x, y + rad, x + diam, y + rad)
-        
+
         g.setStroke(new BasicStroke(16f,              // Line width
                             BasicStroke.CAP_BUTT,    // End-cap style
                             BasicStroke.JOIN_ROUND)); // Vertex join style
 
         val r = (1 - 2 * angleOffset) * currentRel
-        g.setColor(bkgColor)     
-        g.drawArc(x, y, diam, diam, 0, 360)   
-        g.setColor(color)     
-        g.drawArc(x, y, diam, diam, toDegrees(0.75f - angleOffset - r - 0.003f), toDegrees(r + 0.017f))                
+        g.setColor(bkgColor)
+        g.drawArc(x, y, diam, diam, 0, 360)
+        g.setColor(color)
+        g.drawArc(x, y, diam, diam, toDegrees(0.75f - angleOffset - r - 0.003f), toDegrees(r + 0.017f))
     }
 
     private def getCenterAndRad() = {
@@ -834,20 +834,20 @@ case class IntDial(init: Int, range: (Int, Int), var color: Color)(implicit onSe
     private val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
-    private val eps = 17   
+    private val eps = 17
 
-    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(current)) < eps  
-    
+    private def isNearValue(p: Point) = Utils.distance((p.x, p.y), toAbsCoord(current)) < eps
+
     reactions += {
-        case MouseDragged(_, p, _) => if (isNearValue(p)) {            
+        case MouseDragged(_, p, _) => if (isNearValue(p)) {
             val userValue = getCurrentValue((p.x.toFloat, p.y.toFloat))
-            if (Math.abs(userValue - current) < 0.1) {                               
-                current = userValue                
+            if (Math.abs(userValue - current) < 0.1) {
+                current = userValue
                 repaint
-            }                
-        }        
+            }
+        }
         case MouseReleased(_,_,_,_,_) => {
             cbkCurrent
         }
@@ -856,7 +856,7 @@ case class IntDial(init: Int, range: (Int, Int), var color: Color)(implicit onSe
     private val offset = 12
     private val angleOffset = 0.08f
 
-    private def toDegrees(x: Float) = (360 * x).toInt    
+    private def toDegrees(x: Float) = (360 * x).toInt
 
     private def toTau(t: Float) = {
         val r = (1 - 2 * angleOffset) * current
@@ -875,20 +875,20 @@ case class IntDial(init: Int, range: (Int, Int), var color: Color)(implicit onSe
         val x = offset + (if (d.width < d.height)  0 else (0.5f * (d.width - d.height)).toInt)
         val y = offset + (if (d.width >= d.height) 0 else (0.5f * (d.height - d.width)).toInt)
         val diam = Math.min(d.width, d.height) - 2 * offset
-       
+
         val rad = (diam * 0.5f).toInt
         //g.drawLine(x + rad, y, x + rad, y + diam)
         //g.drawLine(x, y + rad, x + diam, y + rad)
-        
+
         g.setStroke(new BasicStroke(16f,              // Line width
                             BasicStroke.CAP_BUTT,    // End-cap style
                             BasicStroke.JOIN_ROUND)); // Vertex join style
 
         val r = (1 - 2 * angleOffset) * current
-        g.setColor(bkgColor)     
-        g.drawArc(x, y, diam, diam, 0, 360)   
-        g.setColor(color)     
-        g.drawArc(x, y, diam, diam, toDegrees(0.75f - angleOffset - r - 0.003f), toDegrees(r + 0.017f))                
+        g.setColor(bkgColor)
+        g.drawArc(x, y, diam, diam, 0, 360)
+        g.setColor(color)
+        g.drawArc(x, y, diam, diam, toDegrees(0.75f - angleOffset - r - 0.003f), toDegrees(r + 0.017f))
         g.setColor(textColor)
         val msg = getIntCurrent.toString
         Utils.drawCenteredString(g, msg, new Rectangle(0, 0, size.width, size.height))
@@ -917,7 +917,7 @@ case class IntDial(init: Int, range: (Int, Int), var color: Color)(implicit onSe
 
         if (fireCallback) {
             cbkCurrent
-        }        
+        }
         repaint
     }
 
@@ -939,12 +939,12 @@ case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit
     val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
     private def eps = (0.1 * (range._2 - range._1))
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
-    
+
 
     reactions += {
         case MouseDragged(_, p, _) => {
@@ -954,13 +954,13 @@ case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit
                 current = userValue
                 repaint
             }
-        }            
+        }
     }
 
     private val offset = 5
 
-    def getCurrentValue(p: Point) = 
-        Utils.linearValueWithoutOffset(p.x, size.width, offset) * (range._2 - range._1) + range._1    
+    def getCurrentValue(p: Point) =
+        Utils.linearValueWithoutOffset(p.x, size.width, offset) * (range._2 - range._1) + range._1
 
     override def paintComponent(g: Graphics2D) {
         Utils.aliasingOn(g)
@@ -969,8 +969,8 @@ case class HFader(init: Float, var color: Color, range: (Float, Float))(implicit
         val py = offset
         val w  = d.width - 2 * offset
         val h  = d.height - 2 * offset
-        val arc= 2 * offset 
-        
+        val arc= 2 * offset
+
         g.setColor(bkgColor)
         g.fillRoundRect(px, py, w, h, arc, arc)
 
@@ -1007,12 +1007,12 @@ case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 
     val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
     private def eps = (0.1 * (range._2 - range._1))
 
     private def isNearValue(value: Float) = Math.abs(value - current) < eps
-    
+
     reactions += {
         case MouseDragged(_, p, _) => {
             val userValue = getCurrentValue(p)
@@ -1021,12 +1021,12 @@ case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 
                 current = userValue
                 repaint
             }
-        }            
+        }
     }
 
     private val offset = 5
 
-    def getCurrentValue(p: Point) = 
+    def getCurrentValue(p: Point) =
         (1 - Utils.linearValueWithoutOffset(p.y, size.height, offset)) * (range._2 - range._1) + range._1
 
     override def paintComponent(g: Graphics2D) {
@@ -1036,8 +1036,8 @@ case class VFader(init: Float, var color: Color, range: (Float, Float) = (0.0f, 
         val py = offset
         val w  = d.width - 2 * offset
         val h  = d.height - 2 * offset
-        val arc= 2 * offset 
-        
+        val arc= 2 * offset
+
         g.setColor(bkgColor)
         g.fillRoundRect(px, py, w, h, arc, arc)
 
@@ -1072,16 +1072,16 @@ case class XYPad(initX: Float, initY: Float, var color: Color)(onSet: (Float, Fl
     val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
     private def pointToValue(p: Point) =
         p.y.toFloat / size.height
 
-    private val offset = 5       
-    
+    private val offset = 5
+
     private def eps = 0.1
 
-    private def isNearValue(value: (Float, Float)) = Utils.distance(current, value) < eps  
+    private def isNearValue(value: (Float, Float)) = Utils.distance(current, value) < eps
 
     reactions += {
         case MouseDragged(_, p, _) => {
@@ -1091,25 +1091,25 @@ case class XYPad(initX: Float, initY: Float, var color: Color)(onSet: (Float, Fl
                 current = userValue
                 repaint
             }
-        }            
+        }
     }
 
-    private def getCurrentValue(p: Point) = 
-        (Utils.linearValueWithoutOffset(p.x, size.width, offset), 
-         1 - Utils.linearValueWithoutOffset(p.y, size.height, offset))   
+    private def getCurrentValue(p: Point) =
+        (Utils.linearValueWithoutOffset(p.x, size.width, offset),
+         1 - Utils.linearValueWithoutOffset(p.y, size.height, offset))
 
     override def paintComponent(g: Graphics2D) {
-        Utils.aliasingOn(g)  
+        Utils.aliasingOn(g)
 
         val d = size
         val px = offset
         val py = offset
         val w  = d.width - 2 * offset
         val h  = d.height - 2 * offset
-        val arc= 2 * offset 
+        val arc= 2 * offset
 
         g.setColor(bkgColor)
-        g.fillRoundRect(px, py, w, h, arc, arc)      
+        g.fillRoundRect(px, py, w, h, arc, arc)
 
         g.setColor(color)
         g.setStroke(new BasicStroke(2f))
@@ -1119,7 +1119,7 @@ case class XYPad(initX: Float, initY: Float, var color: Color)(onSet: (Float, Fl
         g.drawLine(cursor.x, py, cursor.x, py + h)
         g.drawLine(px, cursor.y, px + w, cursor.y)
         val rad = 8
-        g.fillOval(cursor.x - rad, cursor.y - rad, 2 * rad, 2 * rad)        
+        g.fillOval(cursor.x - rad, cursor.y - rad, 2 * rad, 2 * rad)
     }
 
     private def valueToPoint(v: (Float, Float)) = {
@@ -1147,11 +1147,11 @@ case class XYPad(initX: Float, initY: Float, var color: Color)(onSet: (Float, Fl
 
 
 case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Float) => Unit) extends Component with SetWidget[(Float, Float)] with GetWidget[(Float, Float)] with SetColor {
-    var current = init    
+    var current = init
 
     def cbkCurrentValue {
         onSet(current._1, current._2)
-    }    
+    }
 
     cbkCurrentValue
 
@@ -1159,7 +1159,7 @@ case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
     val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
     private def eps = 0.1
     private var isDrag = false
@@ -1172,21 +1172,21 @@ case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
     reactions += {
         case MouseClicked(_, p, _, _, _) => {
             val userValue = getCurrentValue(p)
-            if (isNearValue(userValue)) {                
+            if (isNearValue(userValue)) {
                 initRad = getRad
-            } 
+            }
         }
 
         case MouseDragged(_, p, _) => {
             val userValue = getCurrentValue(p)
-            if (isNearValue(userValue)) {                  
+            if (isNearValue(userValue)) {
                 shiftCurrentValue(userValue)
-                cbkCurrentValue                
+                cbkCurrentValue
                 repaint
             }
         }
 
-        case MouseReleased(_, _, _, _, _) => {            
+        case MouseReleased(_, _, _, _, _) => {
             initRad = getRad
         }
     }
@@ -1201,7 +1201,7 @@ case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
     private val speedY = 0.2f
 
     def getCurrentValue(p: Point) = {
-        val x = Utils.linearValueWithoutOffset(p.x, size.width, offset)            
+        val x = Utils.linearValueWithoutOffset(p.x, size.width, offset)
         val cx = x - getCenter
         val cy = (p.y - size.height * 0.5f) / (3f * size.height)
         (cx, cy)
@@ -1214,9 +1214,9 @@ case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
         val py = offset
         val w  = d.width - 2 * offset
         val h  = d.height - 2 * offset
-        val arc= 2 * offset 
+        val arc= 2 * offset
         val cx = getCenter
-        
+
         val centerRectX1 = px + (w * cx - offset * 0.5f).toInt
         val centerRectWidth = offset
 
@@ -1240,23 +1240,23 @@ case class HFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
             onSet(value._1, value._2)
         }
         repaint
-    } 
+    }
 
     def get: (Float, Float) = current
 
     def setColor(c: Color) {
         color = c
         repaint
-    }   
+    }
 }
 
 
 case class VFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Float) => Unit) extends Component with SetWidget[(Float,Float)] with GetWidget[(Float,Float)] with SetColor {
-    var current = init    
+    var current = init
 
     def cbkCurrentValue {
         onSet(current._1, current._2)
-    }    
+    }
 
     cbkCurrentValue
 
@@ -1264,7 +1264,7 @@ case class VFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
     val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
     private def eps = 0.1
     private var isDrag = false
@@ -1277,21 +1277,21 @@ case class VFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
     reactions += {
         case MouseClicked(_, p, _, _, _) => {
             val userValue = getCurrentValue(p)
-            if (isNearValue(userValue)) {                
+            if (isNearValue(userValue)) {
                 initRad = getRad
-            } 
+            }
         }
 
         case MouseDragged(_, p, _) => {
             val userValue = getCurrentValue(p)
-            if (isNearValue(userValue)) {                  
+            if (isNearValue(userValue)) {
                 shiftCurrentValue(userValue)
-                cbkCurrentValue                
+                cbkCurrentValue
                 repaint
             }
         }
 
-        case MouseReleased(_, _, _, _, _) => {            
+        case MouseReleased(_, _, _, _, _) => {
             initRad = getRad
         }
     }
@@ -1306,7 +1306,7 @@ case class VFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
     private val speedY = 0.2f
 
     def getCurrentValue(p: Point) = {
-        val y = Utils.linearValueWithoutOffset(p.y, size.height, offset)            
+        val y = Utils.linearValueWithoutOffset(p.y, size.height, offset)
         val cy = y - getCenter
         val cx = (p.x - size.width * 0.5f) / (3f * size.width)
         (cx, cy)
@@ -1319,9 +1319,9 @@ case class VFaderRange(init: (Float, Float), var color: Color)(onSet: (Float, Fl
         val py = offset
         val w  = d.width - 2 * offset
         val h  = d.height - 2 * offset
-        val arc= 2 * offset 
+        val arc= 2 * offset
         val cy = getCenter
-        
+
         val centerRectY1 = py + (h * cy - offset * 0.5f).toInt
         val centerRectHeight = offset
 
@@ -1367,15 +1367,15 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), var color: C
     def cbkCurrent {
         onSet(fixBounds(current._1), fixBounds(current._2))
     }
-    
+
     preferredSize = new Dimension(200, 200)
     val bkgColor = Color.GRAY
 
     listenTo(mouse.clicks)
-    listenTo(mouse.moves) 
+    listenTo(mouse.moves)
 
-    private val offset = 5       
-    
+    private val offset = 5
+
     private def eps = 0.1
 
     private def getNearPoint(value: (Float, Float)) = {
@@ -1389,14 +1389,14 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), var color: C
             editPoint = userEditPoint
         }
 
-        case MouseDragged(_, p, _) => {            
+        case MouseDragged(_, p, _) => {
             editPoint.foreach{ edit =>
                 val userValue = getCurrentValue(p)
                 updateCurrentValue(edit, userValue)
                 cbkCurrent
                 repaint
             }
-        } 
+        }
 
         case MouseReleased(_,_,_,_,_) => {
             editPoint = None
@@ -1408,26 +1408,26 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), var color: C
 
     private def updateCurrentValue(editPoint: PointRange, value: (Float, Float)) = {
         val xRange = if (editPoint.isMinX) (value._1, current._1._2) else (current._1._1, value._1)
-        val yRange = if (editPoint.isMinY) (value._2, current._2._2) else (current._2._1, value._2)        
+        val yRange = if (editPoint.isMinY) (value._2, current._2._2) else (current._2._1, value._2)
         current = (xRange, yRange)
     }
 
-    private def getCurrentValue(p: Point) = 
-        (Utils.linearValueWithoutOffset(p.x, size.width, offset), 
-         1 - Utils.linearValueWithoutOffset(p.y, size.height, offset))   
+    private def getCurrentValue(p: Point) =
+        (Utils.linearValueWithoutOffset(p.x, size.width, offset),
+         1 - Utils.linearValueWithoutOffset(p.y, size.height, offset))
 
     override def paintComponent(g: Graphics2D) {
-        Utils.aliasingOn(g)  
+        Utils.aliasingOn(g)
 
         val d = size
         val px = offset
         val py = offset
         val w  = d.width - 2 * offset
         val h  = d.height - 2 * offset
-        val arc= 2 * offset 
+        val arc= 2 * offset
 
         g.setColor(bkgColor)
-        g.fillRoundRect(px, py, w, h, arc, arc)      
+        g.fillRoundRect(px, py, w, h, arc, arc)
 
         g.setColor(color)
         g.setStroke(new BasicStroke(2f))
@@ -1443,24 +1443,24 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), var color: C
         drawLine(1, 2)
         drawLine(2, 3)
         drawLine(3, 0)
-               
+
         val rad = 6
         cursors.foreach { cursor =>
             g.fillOval(cursor.x - rad, cursor.y - rad, 2 * rad, 2 * rad)
-        }        
+        }
     }
 
     private def valueToPoint(v: (Float, Float)) = {
         val x = Utils.linearToAbsWithOffset(v._1, size.width, offset)
         val y = Utils.linearToAbsWithOffset(1 - v._2, size.height, offset)
-        new Point(x.toInt, y.toInt)        
-    } 
+        new Point(x.toInt, y.toInt)
+    }
 
     private def points = List(
-        PointRange(current._1._1, current._2._1, true, true),         
+        PointRange(current._1._1, current._2._1, true, true),
         PointRange(current._1._1, current._2._2, true, false),
-        PointRange(current._1._2, current._2._2, false, false), 
-        PointRange(current._1._2, current._2._1, false, true)) 
+        PointRange(current._1._2, current._2._2, false, false),
+        PointRange(current._1._2, current._2._1, false, true))
 
     def set(value: ((Float, Float), (Float, Float)), fireCallback: Boolean) {
         current = value
@@ -1482,16 +1482,16 @@ case class XYPadRange(initX: (Float, Float), initY: (Float, Float), var color: C
 
 case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) extends FlowPanel with SetWidget[Int] with GetWidget[Int] with SetColor {
     val widget = new ComboBox(items)
-    
+
     contents += widget
     listenTo(widget.selection)
 
     widget.selection.index = init
-    onSet(init)        
+    onSet(init)
 
     reactions += {
         case SelectionChanged(`widget`) => { onSet(widget.selection.index); Utils.setFocus }
-    } 
+    }
 
     def set(value: Int, fireCallback: Boolean) {
         widget.selection.index = value
@@ -1500,7 +1500,7 @@ case class DropDownList(init: Int, items: List[String])(onSet: Int => Unit) exte
             onSet(value)
         }
         repaint
-    } 
+    }
 
     def get: Int = widget.selection.index
 
@@ -1513,21 +1513,21 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
 
     private def updateColor(color: Color) {
         textField.foreground = color
-        textField.repaint            
+        textField.repaint
     }
 
     private def setFont(fontType: Int) {
         val oldFont = textField.font
-        val newFont = new Font(oldFont.getName(), fontType, oldFont.getSize())             
+        val newFont = new Font(oldFont.getName(), fontType, oldFont.getSize())
         textField.font = newFont
     }
 
     private def blink {
         setFont(Font.BOLD)
-        updateColor(clickColor)            
+        updateColor(clickColor)
         Timer(200, repeats = false) {
             setFont(Font.PLAIN)
-            updateColor(textColor)               
+            updateColor(textColor)
         }
     }
 
@@ -1556,7 +1556,7 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
             onSet(value)
         }
         repaint
-    } 
+    }
 
     def get: String = textField.text
 
@@ -1566,15 +1566,15 @@ case class TextInput(init: Option[String], color: Color, textLength: Int = 7)(on
     }
 }
 
-case class FileInput(var file: Option[File], var color: Color, var defaultTitle: String = "Get File")(onSet: File => Unit) 
-    extends Component 
-    with SetWidget[File] 
+case class FileInput(var file: Option[File], var color: Color, var defaultTitle: String = "Get File")(onSet: File => Unit)
+    extends Component
+    with SetWidget[File]
     with GetWidget[Option[File]]
-    with SetColor {    
+    with SetColor {
     preferredSize = new Dimension(150, 35)
 
     var title = file.map(_.getName).getOrElse(defaultTitle)
-    var current = file  
+    var current = file
 
     def setTitle {
         title = current.map(_.getName).getOrElse(defaultTitle)
@@ -1589,11 +1589,11 @@ case class FileInput(var file: Option[File], var color: Color, var defaultTitle:
         }
     }
 
-    listenTo(mouse.clicks)        
+    listenTo(mouse.clicks)
 
     reactions += {
-        case MouseClicked(_, _, _, _, _) =>             
-            getFile            
+        case MouseClicked(_, _, _, _, _) =>
+            getFile
     }
 
     private val offset = 5
@@ -1611,14 +1611,14 @@ case class FileInput(var file: Option[File], var color: Color, var defaultTitle:
         g.drawRoundRect(x, y, w, h, arc, arc)
         g.drawRoundRect(x + offset, y + offset, w - 2 * offset, h - 2 * offset, arc, arc)
 
-        g.setColor(Color.BLACK)            
-        Utils.drawCenteredString(g, title, new Rectangle(x, y, w, h))        
+        g.setColor(Color.BLACK)
+        Utils.drawCenteredString(g, title, new Rectangle(x, y, w, h))
     }
 
     def set(value: File, fireCallback: Boolean = true) {
-        if (fireCallback) {          
+        if (fireCallback) {
             onSet(value)
-        }      
+        }
         current = Some(value)
         setTitle
         repaint
@@ -1641,8 +1641,8 @@ object DoubleCheck {
 
 }
 
-case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, var color2: Color, texts: List[(String, List[String])], orient: DoubleCheck.Orient, allowDeselect: Boolean)(onSet: (Int, Int) => Unit) 
-    extends Component 
+case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, var color2: Color, texts: List[(String, List[String])], orient: DoubleCheck.Orient, allowDeselect: Boolean)(onSet: (Int, Int) => Unit)
+    extends Component
     with SetWidget[(Int,Int)]
     with GetWidget[(Int,Int)] {
 
@@ -1668,15 +1668,15 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
             (1 + maxSize2, maxSize1)
         } else (maxSize1, maxSize2) ) match {
             case (x, y) => new Dimension(x * textWidth, y * textHeight)
-        }       
+        }
 
-    def getBoundingRects = 
+    def getBoundingRects =
         ((if (orient.isFirstHor && orient.isSecondHor) {
             val mid = (size.height * 0.5f).toInt
             ( (0, 0, size.width, mid)
             , (0, mid, size.width, mid))
         } else if (orient.isFirstVer && orient.isSecondVer) {
-            val mid = (size.width * 0.5f).toInt 
+            val mid = (size.width * 0.5f).toInt
             ( (0, 0, mid, size.height)
             , (mid, 0, mid, size.height) )
         } else if (orient.isFirst && orient.isFirstHor && orient.isSecondVer) {
@@ -1686,7 +1686,7 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         } else if (!orient.isFirst && orient.isFirstHor && orient.isSecondVer) {
             val mid = (size.height * (maxSize2.toFloat / (maxSize2 + 1))).toInt
             ( (0, 0, size.width, mid)
-            , (0, mid, size.width, size.height - mid) )            
+            , (0, mid, size.width, size.height - mid) )
         } else if (orient.isFirst && orient.isFirstVer && orient.isSecondHor) {
             val mid = (size.width * (1.0f / (maxSize2 + 1))).toInt
             ( (0, 0, mid, size.height)
@@ -1694,8 +1694,8 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         } else if (!orient.isFirst && orient.isFirstVer && orient.isSecondHor) {
             val mid = (size.width * (maxSize2.toFloat / (maxSize2 + 1))).toInt
             ( (0, 0, mid, size.height)
-            , (mid, 0, size.width - mid, size.height) )       
-        } else { 
+            , (mid, 0, size.width - mid, size.height) )
+        } else {
             val mid = (size.height * 0.5f).toInt
             ( (0, 0, size.width, mid)
             , (0, mid, size.width, mid))
@@ -1711,19 +1711,19 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
     }
 
     def getAllRects = {
-        val (boundRect1, boundRect2) = getBoundingRects 
+        val (boundRect1, boundRect2) = getBoundingRects
 
         val rects1 = if (orient.isFirstHor)  getHorRects(boundRect1, maxSize1) else getVerRects(boundRect1, maxSize1)
         val rects2 = if (orient.isSecondHor) getHorRects(boundRect2, maxSize2) else getVerRects(boundRect2, maxSize2)
 
         (rects1, rects2)
     }
-    
+
 
     def getHorRects(boundRect: Rectangle, maxSize: Int): List[Rectangle] = {
         val dw = boundRect.width.toFloat / maxSize
         def rect(ix: Int) = new Rectangle(
-            (boundRect.x + offset * 0.5f + dw * ix).toInt, (boundRect.y + offset * 0.5f).toInt, 
+            (boundRect.x + offset * 0.5f + dw * ix).toInt, (boundRect.y + offset * 0.5f).toInt,
             (dw - offset).toInt, (boundRect.height - offset).toInt)
 
         (0 until maxSize).map(rect).toList
@@ -1733,7 +1733,7 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         val dh = boundRect.height.toFloat / maxSize
 
         def rect(ix: Int) = new Rectangle(
-            (boundRect.x + 0.5f * offset).toInt, (boundRect.y +  offset * 0.5f + dh * ix).toInt, 
+            (boundRect.x + 0.5f * offset).toInt, (boundRect.y +  offset * 0.5f + dh * ix).toInt,
             (boundRect.width - offset).toInt, (dh - offset).toInt)
 
         (0 until maxSize).map(rect).toList
@@ -1743,22 +1743,22 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
     var names1 = texts.map(_._1).toArray
     var names2 = texts.map(_._2.toArray).toArray
 
-    listenTo(mouse.clicks)        
+    listenTo(mouse.clicks)
 
     reactions += {
         case MouseClicked(_, p, _, _, _) => onClick(p)
     }
 
-    def onClick(p: Point) { 
-        getCell(p).foreach { 
+    def onClick(p: Point) {
+        getCell(p).foreach {
             case Left(ix)  => onFirstSelect(ix)
-            case Right(ix) => onSecondSelect(ix)            
+            case Right(ix) => onSecondSelect(ix)
         }
-    } 
+    }
 
-    def onFirstSelect(ix: Int) {  
+    def onFirstSelect(ix: Int) {
         if (currentFirst != ix) {
-            currentFirst = ix        
+            currentFirst = ix
             repaint
         }
     }
@@ -1767,11 +1767,11 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         current = (currentFirst, ix)
         if (fireCallback) {
             onSet(current._1, current._2)
-        }        
-        repaint  
+        }
+        repaint
     }
 
-    def findCellInRect(r: List[Rectangle], p: Point) = 
+    def findCellInRect(r: List[Rectangle], p: Point) =
         r.zipWithIndex.find({case (r, ix) => r.contains(p)}) match {
             case Some((r, ix)) => Some(ix)
             case None => None
@@ -1787,7 +1787,7 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
                 }
         }
     }
-        
+
 
 
     def setColor1(c: Color) {
@@ -1798,13 +1798,13 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
     def setColor2(c: Color) {
         color2 = c
         repaint
-    }    
+    }
 
     def set(value: (Int, Int), fireCallback: Boolean) {
         current = within(value)
         if (fireCallback) {
             onSet(current._1, current._2)
-        }        
+        }
         repaint
     }
 
@@ -1819,8 +1819,8 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         (res1, res2)
     }
 
-    val offset = 5 
-    val arc = 2 * offset   
+    val offset = 5
+    val arc = 2 * offset
 
     override def paintComponent(g: Graphics2D) {
         val (text1, text2) = getCurrentTexts
@@ -1833,15 +1833,15 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
         drawNames(g, text2, rects2)
     }
 
-    def drawBorderRect(g: Graphics2D) {        
-        val d = size        
+    def drawBorderRect(g: Graphics2D) {
+        val d = size
         val x = (offset * 0.5f).toInt
         val y = (offset * 0.5f).toInt
         val w = d.width - offset
-        val h = d.height - offset        
+        val h = d.height - offset
         g.setColor(color1)
         g.setStroke(new BasicStroke(2f))
-        g.drawRoundRect(x, y, w, h, arc, arc)        
+        g.drawRoundRect(x, y, w, h, arc, arc)
     }
 
     def drawNames(g: Graphics2D, texts: Seq[String], rects: Seq[Rectangle]) {
@@ -1851,12 +1851,12 @@ case class DoubleCheck(init: (Int, Int), sizes: List[Int], var color1: Color, va
 
     def drawRects(g: Graphics2D, color: Color, rects: Seq[Rectangle], choice: Int) {
         g.setColor(color)
-        rects.zipWithIndex.map( { case (rect, ix) => 
+        rects.zipWithIndex.map( { case (rect, ix) =>
             if (ix == choice) {
-                g.fillRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)        
+                g.fillRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)
             } else {
                 g.setStroke(new BasicStroke(2f))
-                g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)        
+                g.drawRoundRect(rect.x, rect.y, rect.width, rect.height, arc, arc)
             }
 
         } )
